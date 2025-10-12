@@ -13,7 +13,13 @@ Stipendify je web platforma za pretragu državnih I privatnih stipendija. Pronal
 
 #Instalcija
 # Članovi tima 
-> Popis članova tima/linkovi/ glavni doprinos
+Toni Kukec
+Klara Klanac
+Dora Mitić
+Petar Gavrić
+Nika Mušić
+Karlo Kajba Šimanić
+> 
 >
 
 # Kontribucije
