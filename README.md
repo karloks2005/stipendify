@@ -1,7 +1,7 @@
 # Stipendify - platforma za kreiranje i pronalazak stipendija
 
 # Opis projekta
-Ovaj projekt je reultat timskog rada u sklopu projeknog zadatka kolegija [Programsko inženjerstvo](https://www.fer.unizg.hr/predmet/proinz) na Fakultetu elektrotehnike i računarstva Sveučilišta u Zagrebu. 
+Ovaj projekt je rezultat timskog rada u sklopu projektnog zadatka kolegija [Programsko inženjerstvo](https://www.fer.unizg.hr/predmet/proinz) na Fakultetu elektrotehnike i računarstva Sveučilišta u Zagrebu. 
 
 Stipendify je web platforma za pretragu državnih I privatnih stipendija. Pronalazak stipendija zahtjevno je i oduzima puno vremena. Cilj naše platforme je omogućiti lakšu pretragu stipendija studentima, odnosno mjesto za objavu svojih natječaja ako je riječ o privatnoj stipendiji. Želimo omogućiti lakši doticaj studenata s natječajima, bilo da su oni državni ili privatni.
 
