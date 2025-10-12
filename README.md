@@ -11,16 +11,16 @@ Stipendify je web platforma za pretragu državnih I privatnih stipendija. Pronal
 
 # Tehnologije
 
-#Instalcija
+# Instalacija
+
 # Članovi tima 
-Toni Kukec
-Klara Klanac
-Dora Mitić
-Petar Gavrić
-Nika Mušić
-Karlo Kajba Šimanić
-> 
->
+[Petar Gavrić](https://github.com/Petar-Gavric) <br>
+[Karlo Kajba Šimanić](https://github.com/karloks2005) <br>
+[Klara Klanac](https://github.com/KlaraKlanac) <br>
+[Toni Kukec](https://github.com/tkukec) <br>
+[Karlo Mance](https://github.com/kmance64) <br>
+[Dora Mitić](https://github.com/dora-mitic) <br>
+[Nika Mušić](https://github.com/NikaMusic1204) <br>
 
 # Kontribucije
 >Pravila ovise o organizaciji tima i su često izdvojena u CONTRIBUTING.md
