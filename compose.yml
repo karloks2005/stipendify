@@ -1,0 +1,23 @@
+services:
+  database:
+    image: 'postgres:latest'
+    networks:
+      - db-network
+    volumes:
+      - db-data/:/var/lib/postgresql/data/
+      - backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+  backend:
+    build: backend/
+    ports:
+      - 5000:5000
+    env:
+      - backend/.env
+    depends_on:
+      - database
+    networks:
+      - default
+      - db-network
+
+networks: 
+  db-network:
+    internal: true

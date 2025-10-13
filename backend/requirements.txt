@@ -1,0 +1,5 @@
+fastapi >= 0.119.0
+uvicorn >= 0.37.0
+psycopg >= 3.2
+pwdlib [Argon2] >= 0.2.1
+PyJWT >= 2.10.1
