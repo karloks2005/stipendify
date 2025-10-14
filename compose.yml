@@ -4,14 +4,14 @@ services:
     networks:
       - db-network
     volumes:
-      - db-data/:/var/lib/postgresql/data/
-      - backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db-data/:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=postgres
   backend:
     build: backend/
+    env_file: "backend/.env"
     ports:
-      - 5000:5000
-    env:
-      - backend/.env
+      - 8888:5000
     depends_on:
       - database
     networks:
@@ -19,5 +19,6 @@ services:
       - db-network
 
 networks: 
+  default:
   db-network:
     internal: true
