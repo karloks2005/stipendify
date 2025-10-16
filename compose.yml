@@ -4,7 +4,7 @@ services:
     networks:
       - db-network
     volumes:
-      - ./db-data/:/var/lib/postgresql/data/
+      - db-data:/var/lib/postgresql/data/
     environment:
       - POSTGRES_PASSWORD=postgres
   backend:
@@ -22,3 +22,5 @@ networks:
   default:
   db-network:
     internal: true
+volumes:
+  db-data:
