@@ -6,7 +6,7 @@ Ovaj projekt je rezultat timskog rada u sklopu projektnog zadatka kolegija [Prog
 Stipendify je web platforma za pretragu državnih I privatnih stipendija. Pronalazak stipendija zahtjevno je i oduzima puno vremena. Cilj naše platforme je omogućiti lakšu pretragu stipendija studentima, odnosno mjesto za objavu svojih natječaja ako je riječ o privatnoj stipendiji. Želimo omogućiti lakši doticaj studenata s natječajima, bilo da su oni državni ili privatni.
 
 # Funkcijski zahtjevi
-> Navedite ključne zahtjeve Vašeg projekta.
+[Wiki](https://github.com/karloks2005/stipendify/wiki/2.-Analiza-zahtjeva)
 
 
 # Tehnologije
