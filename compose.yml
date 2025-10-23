@@ -17,6 +17,16 @@ services:
     networks:
       - default
       - db-network
+  frontend:
+    build: frontend/app/
+    ports:
+      - 8887:80
+    depends_on:
+      - database
+      - backend
+    networks:
+      - default
+  
 
 networks: 
   default:
