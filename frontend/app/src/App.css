@@ -1,38 +1,281 @@
-.App {
-  text-align: center;
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+body {
+  background: #fafafa;
+  color: #111827;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+.min-h-screen.flex {
   min-height: 100vh;
   display: flex;
-  flex-direction: column;
+  align-items: center !important;        
+  justify-content: center;
+  padding: 48px 56px;
+  gap: 48px;
+  box-sizing: border-box;
+}
+
+/* LEFT BLUE PANEL */
+.bg-blue-400 {
+  display: block !important;            
+  background: #6ea7ff;
+  color: #fff;
+  width: 420px;                          
+  max-width: 38%;
+  border-radius: 12px;
+  padding: 64px 44px;                    
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  box-sizing: border-box;
+}
+
+/* Visina panela: puni viewport minus padding */
+.min-h-screen.flex > .bg-blue-400 {
+  height: calc(100vh - 96px);
+}
+
+/* naslov u lijevom panelu */
+.bg-blue-400 h1,
+.bg-blue-400 .title-large {
+  font-size: 48px;
+  line-height: 1;
+  font-weight: 800;
+  margin: 0 0 22px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: inline-block;
+  position: relative;
+  padding-bottom: 10px;
+  color: #fff;
+}
+
+/* podcrtavanje naslov */
+.bg-blue-400 h1::after,
+.bg-blue-400 .title-large::after {
+  content: "";
+  display: block;
+  height: 4px;
+  width: 56%;
+  background: rgba(255,255,255,0.9);
+  margin-top: 12px;
+  border-radius: 2px;
+}
+
+/* opisni tekst u lijevom panelu */
+.bg-blue-400 p,
+.bg-blue-400 .lead {
+  color: rgba(255,255,255,0.95);
+  font-size: 14px;
+  line-height: 1.7;
+  margin-top: 18px;
+  opacity: 0.98;
+}
+
+/* desni oblik - container forme */
+.flex-1.max-w-lg,
+.right-form {
+  flex: 1 1 640px;
+  max-width: 720px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* header unutar desnog panela */
+.flex-1.max-w-lg > .flex,
+.right-form > .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+/* veliki naslov registracije */
+.flex-1.max-w-lg h2,
+.right-form h2 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* subtitle */
+.flex-1.max-w-lg p,
+.right-form p {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* logo krug */
+.w-16.h-16.bg-blue-500,
+.logo-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 9999px;
+  background: #3b82f6;
+  color: #fff;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(59,130,246,0.18);  /*BRISI POSLI KAD DODE PRAVI LOGO */
 }
 
-.App-link {
-  color: #61dafb;
+/* role radio labels */
+.flex-1.max-w-lg .role-row,
+.right-form .role-row {
+  display: flex;
+  gap: 48px;
+  align-items: flex-start;
+  margin: 18px 0 28px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+/* style radio label blocks */
+.flex-1.max-w-lg label,
+.right-form label {
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  color: #111827;
+}
+
+/* description under radio */
+.flex-1.max-w-lg label div div,
+.right-form label div div {
+  color: #9ca3af;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* inputs */
+.flex-1.max-w-lg input,
+.right-form input,
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #e9e9ea;
+  background: #fff;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+  font-size: 14px;
+  color: #111827;
+  box-sizing: border-box;
+}
+
+/* natpisi iznad input linija */
+.flex-1.max-w-lg label.input-label,
+.right-form label.input-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #111827;
+}
+
+/* spacing between form rows */
+.flex-1.max-w-lg .mb-4,
+.right-form .mb-4 {
+  margin-bottom: 18px;
+}
+
+/* submit */
+.flex-1.max-w-lg .mt-8,
+.right-form .mt-8 {
+  margin-top: 28px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* submit button*/
+.flex-1.max-w-lg .w-48 > button,
+.right-form .w-48 > button,
+button[type="submit"] {
+  background: #0b0b0b;
+  color: #fff;
+  border-radius: 10px;
+  padding: 12px 18px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.28);
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+/* link style */
+a { color: #2563eb; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+
+/* responsive for smaller screens */
+@media (max-width: 1024px) {
+  .min-h-screen.flex {
+    padding: 32px 24px;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
   }
-  to {
-    transform: rotate(360deg);
+  
+  /*STIPENDIFYheader */
+  .bg-blue-400 {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 720px;
+    height: auto !important;
+    padding: 32px;
+    margin-bottom: 0;
+  }
+
+  /* Hide description na manjem ekranu */
+  .bg-blue-400 h3,
+  .bg-blue-400 p {
+    display: none;
+  }
+
+  /*STIPENDIFY title */
+  .bg-blue-400 h1 {
+    text-align: center;
+    margin-bottom: 0;
+    font-size: 40px;
+  }
+
+  /*form container */
+  .flex-1.max-w-lg {
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .min-h-screen.flex {
+    padding: 18px;
+  }
+  
+  .bg-blue-400 {
+    padding: 24px 18px;
+  }
+  
+  .bg-blue-400 h1 {
+    font-size: 32px;
+  }
+  
+  .flex-1.max-w-lg h2 { 
+    font-size: 24px; 
+  }
+  
+  .w-16.h-16.bg-blue-500 { 
+    width: 56px; 
+    height: 56px; 
   }
 }
