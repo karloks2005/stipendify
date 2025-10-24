@@ -4,7 +4,8 @@ from fastapi import Depends, FastAPI
 
 from modules.db import User, create_db_and_tables
 from modules.schemas import UserCreate, UserRead, UserUpdate
-from modules.users import auth_backend, current_active_user, fastapi_users
+from modules.users import auth_backend, current_active_user, fastapi_users, google_oauth_client, auth_backend
+import os
 
 
 @asynccontextmanager
@@ -38,6 +39,13 @@ app.include_router(
     fastapi_users.get_users_router(UserRead, UserUpdate),
     prefix="/users",
     tags=["users"],
+)
+SECRET = os.getenv("AUTH_KEY")
+app.include_router(
+    fastapi_users.get_oauth_router(
+        google_oauth_client, auth_backend, SECRET, associate_by_email=True),
+    prefix="/auth/google",
+    tags=["auth"],
 )
 
 
