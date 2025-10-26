@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-import ZagrebUrlGetter
+import ZagrebUrlGetter as Zg
 
 
 class ZagrebScraper:
@@ -60,7 +60,7 @@ class ZagrebScraper:
 
 if __name__ == "__main__":
     url = "https://zagreb.hr/stipendije-grada-zagreba/175198"
-    url_getter = ZagrebUrlGetter(url)
+    url_getter = Zg.ZagrebUrlGetter(url)
     print(url_getter)
     scraper = ZagrebScraper(url_getter.get_links()[0])
     print(scraper)
