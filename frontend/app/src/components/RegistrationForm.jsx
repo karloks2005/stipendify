@@ -22,7 +22,7 @@ export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToL
             <h2 className="text-3xl font-bold">Registriraj se</h2>
             <p className="text-sm text-gray-500 mt-2">
               Već imaš račun?{' '}
-              <a href="#" onClick={(e) => { e.preventDefault(); onSwitchToLogin() }} className="text-blue-500">Log in</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); onSwitchToLogin() }} className="text-blue-500">Prijavi se</a>
             </p>
           </div>
           
@@ -66,16 +66,16 @@ export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToL
 
           {data.role === 'student' ? (
             <>
-              <InputField label="Ime" name="firstName" value={data.firstName} onChange={onChange} placeholder="Value" />
-              <InputField label="Prezime" name="lastName" value={data.lastName} onChange={onChange} placeholder="Value" />
+              <InputField label="Ime" name="firstName" value={data.firstName} onChange={onChange} placeholder="Unesite ime" />
+              <InputField label="Prezime" name="lastName" value={data.lastName} onChange={onChange} placeholder="Unesite prezime" />
             </>
           ) : (
-            <InputField label="Naziv organizacije" name="orgName" value={data.orgName} onChange={onChange} placeholder="Value" />
+            <InputField label="Naziv organizacije" name="orgName" value={data.orgName} onChange={onChange} placeholder="Unesite naziv organizacije" />
           )}
 
-          <InputField label="Email" type="email" name="email" value={data.email} onChange={onChange} placeholder="Value" />
-          <InputField label="Lozinka" type="password" name="password" value={data.password} onChange={onChange} placeholder="Value" />
-          <InputField label="Potvrdi lozinku" type="password" name="confirm" value={data.confirm} onChange={onChange} placeholder="Value" />
+          <InputField label="E-mail" type="email" name="email" value={data.email} onChange={onChange} placeholder="Unesite e-mail" />
+          <InputField label="Lozinka" type="password" name="password" value={data.password} onChange={onChange} placeholder="Unesite lozinku" />
+          <InputField label="Potvrdi lozinku" type="password" name="confirm" value={data.confirm} onChange={onChange} placeholder="Potvrdite lozinku" />
 
           <div className="mt-8 flex justify-end">
             <div className="w-48">
