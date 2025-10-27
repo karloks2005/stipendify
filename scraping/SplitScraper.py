@@ -2,6 +2,8 @@ import requests
 from bs4 import BeautifulSoup
 import re
 from SplitUrlGetter import SplitUrlGetter
+import PyPDF2
+import io
 
 
 class SplitScraper:
@@ -47,7 +49,6 @@ class SplitScraper:
 
     def get_details(self):
         # Traži glavni sadržaj natječaja
-        # Obično je u div sa klasom koja sadrži 'content' ili 'body'
         details_div = self.soup.find('div', class_='user-content')
         if not details_div:
             details_div = self.soup.find('div', class_='edn_articleContent')
@@ -63,6 +64,72 @@ class SplitScraper:
         
         return ""
 
+    def get_pdf_links(self):
+        """Dohvaća sve PDF linkove sa stranice"""
+        pdf_links = []
+        
+        # Traži sve linkove prema PDF dokumentima
+        for link in self.soup.find_all('a', href=True):
+            href = link['href']
+            # Provjeri je li to PDF link
+            if 'DocumentDownload.ashx' in href or href.lower().endswith('.pdf'):
+                # Provjerava sadržava li "tekst poziva" ili slične izraze
+                link_text = link.get_text(strip=True).lower()
+                if 'tekst' in link_text or 'poziv' in link_text or 'natječaj' in link_text:
+                    if not href.startswith('http'):
+                        href = 'https://split.hr' + href
+                    pdf_links.append(href)
+        
+        return pdf_links
+
+    def extract_text_from_pdf(self, pdf_url):
+        """Preuzima PDF i izvlači tekst"""
+        try:
+            response = requests.get(pdf_url, timeout=30)
+            response.raise_for_status()
+            
+            pdf_file = io.BytesIO(response.content)
+            pdf_reader = PyPDF2.PdfReader(pdf_file)
+            
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+            
+            return text
+        except Exception as e:
+            print(f"Greška pri čitanju PDF-a {pdf_url}: {e}")
+            return ""
+
+    def get_amounts_from_pdf(self):
+        """Dohvaća iznose stipendija iz PDF dokumenata"""
+        pdf_links = self.get_pdf_links()
+        all_amounts = []
+        
+        for pdf_link in pdf_links:
+            pdf_text = self.extract_text_from_pdf(pdf_link)
+            if pdf_text:
+                # Pattern za iznose: traži EUR ili eura sa brojevima
+                # Primjer: "150,00 EUR", "200 EUR", "150.00 eura"
+                amount_patterns = [
+                    r"(\d{1,4}[.,]\d{2})\s*(?:EUR|eura)",  # 150,00 EUR
+                    r"(\d{1,4})\s*(?:EUR|eura)",            # 150 EUR
+                    r"(\d{1,4}[.,]\d{2})\s*€",              # 150,00 €
+                ]
+                
+                for pattern in amount_patterns:
+                    matches = re.findall(pattern, pdf_text, re.IGNORECASE)
+                    for match in matches:
+                        # Normaliziraj broj (zamijeni zarez sa točkom)
+                        normalized = match.replace(',', '.')
+                        try:
+                            amount = float(normalized)
+                            if amount not in all_amounts and 50 <= amount <= 1000:  # Filtriraj realne iznose
+                                all_amounts.append(amount)
+                        except ValueError:
+                            continue
+        
+        return sorted(list(set(all_amounts)))  # Vrati sortirane jedinstvene iznose
+
     def get_categories(self):
         text = self.get_details().lower()
         categories = []
@@ -75,14 +142,20 @@ class SplitScraper:
         return categories
 
     def get_amounts(self):
+        # Prvo pokušaj iz PDF-a
+        pdf_amounts = self.get_amounts_from_pdf()
+        if pdf_amounts:
+            return [str(int(amt)) if amt == int(amt) else str(amt) for amt in pdf_amounts]
+        
+        # Ako nema PDF-a, traži na stranici
         details = self.get_details()
-        # Pattern za iznose u eurima
         amount_pattern = r"(\d{2,3}(?:[.,]\d{2})?)\s*(?:eura|€|EUR)"
-        return re.findall(amount_pattern, details, flags=re.IGNORECASE)
+        amounts = re.findall(amount_pattern, details, flags=re.IGNORECASE)
+        
+        return amounts if amounts else None
 
     def get_durations(self):
         details = self.get_details()
-        # Pattern za trajanje
         duration_pattern = r"(?:na|traje|razdoblje od)\s+(\d+)\s+mjesec"
         match = re.search(duration_pattern, details, flags=re.IGNORECASE)
         return match.group(1) if match else None
@@ -109,6 +182,8 @@ class SplitScraper:
         
         if data['iznosi']:
             text += f"Iznosi: {', '.join(data['iznosi'])} EUR\n"
+        else:
+            text += f"Iznosi: Null\n"
         
         if data['trajanje']:
             text += f"Trajanje: {data['trajanje']} mjeseci\n"
