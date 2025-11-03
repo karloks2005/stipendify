@@ -18,9 +18,9 @@ class OAuthAccount(SQLAlchemyBaseOAuthAccountTableUUID, Base):
 
 
 class User(SQLAlchemyBaseUserTableUUID, Base):
-    first: Mapped[str] = mapped_column(String(128), nullable=False)
-    last: Mapped[str] = mapped_column(String(128), nullable=False)
-    company_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    first: Mapped[str] = mapped_column(String(128), nullable=True)
+    last: Mapped[str] = mapped_column(String(128), nullable=True)
+    company_name: Mapped[str] = mapped_column(String(128), nullable=True)
     is_orga: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False)
     oauth_accounts = relationship(

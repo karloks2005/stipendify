@@ -9,16 +9,16 @@ class OAuthAccountRead(schemas.BaseOAuthAccount):
 
 
 class UserRead(schemas.BaseUser[uuid.UUID]):
-    first: str
-    last: str
-    company_name: str
+    first: Optional[str]
+    last: Optional[str]
+    company_name: Optional[str]
     is_orga: bool
 
 
 class UserCreate(schemas.BaseUserCreate):
-    first: str
-    last: str
-    company_name: str
+    first: Optional[str]
+    last: Optional[str]
+    company_name: Optional[str]
     is_orga: bool
 
 
