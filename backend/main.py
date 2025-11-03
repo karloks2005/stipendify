@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from modules.db import User, create_db_and_tables
 from modules.schemas import UserCreate, UserRead, UserUpdate
@@ -14,8 +15,10 @@ async def lifespan(app: FastAPI):
     await create_db_and_tables()
     yield
 
-
 app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(CORSMiddleware, allow_origins=[
+                   "http://localhost:3000"], allow_methods=["GET", "POST"], allow_headers=["*"], allow_credentials=True)
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
