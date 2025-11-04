@@ -109,7 +109,7 @@ function LoginAndRegisterPage() {
             <InputField
               label="Email"
               type="email"
-              name="username"
+              name="email"
               value={loginData.email}
               onChange={handleLoginChange}
               placeholder="Unesite email"
