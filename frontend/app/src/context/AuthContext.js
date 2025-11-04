@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 
 // Create the context
 const AuthContext = createContext(null);
@@ -7,12 +7,36 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [accessToken, setAccessToken] = useState(null);
+
+  // On mount, try to rehydrate auth state from localStorage (if token was saved)
+  const hasRunRef = useRef(false);
+  useEffect(() => {
+    if (hasRunRef.current) return;
+    hasRunRef.current = true;
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      if (token) {
+        console.log("Rehydrating auth from localStorage, token:", token);
+        setAccessToken(token);
+        // attempt to load user using the saved token (or cookie if backend sets it)
+        userFromToken(token);
+      }
+    } catch (err) {
+      // localStorage may be unavailable in some environments — ignore failures
+      console.warn('Failed to read access_token from localStorage. The token is probably null.');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   // Fake login/logout logic for demo
   const login = (response) => {
     // support different token shapes from backend
     const token = response?.accessToken || response?.access_token || null;
-    if (token) setAccessToken(token);
+    if (token) {
+      setAccessToken(token);
+      console.log("Logged in, token:", token);
+      localStorage.setItem("access_token", token);
+    }
     // attempt to load user info either with token in Authorization header
     // or relying on cookie-based session if backend sets a cookie (credentials: include)
     userFromToken(token);
@@ -43,6 +67,11 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setAccessToken(null);
+    try {
+      localStorage.removeItem('access_token');
+    } catch (err) {
+      // ignore
+    }
   };
 
   const getUserData = () => {

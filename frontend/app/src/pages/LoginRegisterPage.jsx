@@ -84,9 +84,11 @@ function LoginAndRegisterPage() {
           if (url) {
             try {
               window.location.href = decodeURIComponent(url);
+              console.log("Redirecting to Google OAuth...");
               return;
             } catch (err) {
               window.location.href = url;
+              console.log("Redirecting to Google OAuth... Error caught but proceeding.");
               return;
             } 
           }
