@@ -77,7 +77,12 @@ export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToL
           <InputField label="Lozinka" type="password" name="password" value={data.password} onChange={onChange} placeholder="Unesite lozinku" />
           <InputField label="Potvrdi lozinku" type="password" name="confirm" value={data.confirm} onChange={onChange} placeholder="Potvrdite lozinku" />
 
-          <div className="mt-8 flex justify-end">
+          <div className="mt-8 flex flex-row justify-end">
+            <div className="w-48">
+              {/* Google should not submit the form directly */}
+              <Button type="button" onClick={(e) => { e.preventDefault(); if (typeof onGoogle === 'function') onGoogle(); }}>Sign in with Google</Button>
+            </div>
+            <div className="w-8" /> {/* spacer */}
             <div className="w-48">
               <Button type="submit">Registriraj se!</Button>
             </div>
