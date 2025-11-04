@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
@@ -7,8 +7,11 @@ export default function CallbackPage() {
   const { login } = useAuth();
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(true);
+  const hasRunRef = useRef(false);
 
   useEffect(() => {
+    if (hasRunRef.current) return;
+    hasRunRef.current = true;
     // Parse query params (e.g., ?code=...&state=...) and any fragment/hash params
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
@@ -53,7 +56,6 @@ export default function CallbackPage() {
 
     fetch(exchangeUrl, {
       method: 'GET',
-      credentials: 'include',
       headers: {
         'Accept': 'application/json'
       }
@@ -62,52 +64,20 @@ export default function CallbackPage() {
       if (res.ok) {
         try {
           const data = await res.json().catch(() => null);
-          if (data) {
-            // If backend returned a redirect URI, follow it.
-            const redirectCandidate = data?.redirect_uri || data?.redirect || data?.redirectUri || data?.url;
-            if (redirectCandidate) {
-              try {
-                window.location.href = decodeURIComponent(redirectCandidate);
-                return;
-              } catch (e) {
-                window.location.href = redirectCandidate;
-                return;
-              }
-            }
-
             // If backend provided an access token shape, call login helper.
-            if (data?.access_token || data?.accessToken) {
+            if (data?.access_token) {
               login(data);
+              console.log("yayyy");
               navigate('/', { replace: true });
               return;
             }
-          }
-
-          // If no useful JSON, attempt to follow Location header (may require CORS expose)
-          const locationHeader = res.headers.get('Location') || res.headers.get('location');
-          if (locationHeader) {
-            window.location.href = locationHeader;
-            return;
-          }
-
-          // Fallback: assume backend set an HttpOnly cookie and the session is valid.
-          // Try to rehydrate the user by calling /users/me through the auth context helper.
-          // The AuthContext's userFromToken will call /users/me using credentials: include.
-          // If login helper expects a token, we call it with null to just rehydrate via cookie.
-          login({});
+          
           navigate('/', { replace: true });
         } catch (err) {
           console.error('Callback handling error', err);
           setError('Failed to process callback response');
         }
       } else {
-        // Non-OK response, try to parse JSON error message or follow header redirect
-        const locationHeader = res.headers.get('Location') || res.headers.get('location');
-        if (locationHeader) {
-          window.location.href = locationHeader;
-          return;
-        }
-
         try {
           const errJson = await res.json().catch(() => null);
           setError(errJson?.detail || errJson?.error || `Exchange failed (${res.status})`);
