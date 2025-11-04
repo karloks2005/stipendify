@@ -46,7 +46,7 @@ app.include_router(
 SECRET = os.getenv("AUTH_KEY")
 app.include_router(
     fastapi_users.get_oauth_router(
-        google_oauth_client, auth_backend, SECRET, associate_by_email=True),
+        google_oauth_client, auth_backend, SECRET, associate_by_email=True, redirect_url="http://localhost:3000/callback"),
     prefix="/auth/google",
     tags=["auth"],
 )
