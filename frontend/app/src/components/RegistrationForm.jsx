@@ -1,7 +1,7 @@
 import Button from './Button'
 import InputField from './InputField'
 
-export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToLogin }) {
+export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToLogin, onGoogle }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
       {/* lijevi plavi panel */}

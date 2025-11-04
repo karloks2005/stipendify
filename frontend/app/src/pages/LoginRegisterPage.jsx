@@ -65,9 +65,38 @@ function LoginAndRegisterPage() {
   }
 
   const handleGoogleLogin = (e) => {
-    e.preventDefault();
-    // Redirect to backend Google OAuth2 login endpoint
+    e?.preventDefault?.();
+    // Fetch the authorization link from the backend, then navigate the browser to it.
+    // Backend may expose an endpoint that returns JSON { authorization_url: '...' }
+    // or similar. If that fails we fall back to navigating directly to the oauth route.
+    (async () => {
+      try {
+        const resp = await fetch('http://localhost:8888/auth/google/authorize', {
+          method: 'GET',
+          credentials: 'include',
+          headers: { Accept: 'application/json' },
+        });
 
+        if (resp.ok) {
+          // Try to parse JSON body which may contain the authorization URL
+          const data = await resp.json().catch(() => null);
+          const url = data?.authorization_url;
+          if (url) {
+            try {
+              window.location.href = decodeURIComponent(url);
+              return;
+            } catch (err) {
+              window.location.href = url;
+              return;
+            } 
+          }
+        }
+
+        
+      } catch (err) {
+        console.error('Failed to fetch authorization url, falling back to direct redirect', err);
+      }
+    })();
   };
 
   const handleRegSubmit = (e) => {
@@ -138,6 +167,7 @@ function LoginAndRegisterPage() {
       onChange={handleRegChange}
       onSubmit={handleRegSubmit}
       onSwitchToLogin={() => setMode('login')}
+      onGoogle={handleGoogleLogin}
     />
   )
 }
