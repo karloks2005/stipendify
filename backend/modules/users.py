@@ -10,7 +10,8 @@ from fastapi_users.authentication import (
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
 from httpx_oauth.clients.google import GoogleOAuth2
-from modules.db import User, get_user_db
+from modules.models import User
+from modules.db import get_user_db
 import os
 
 SECRET = os.getenv("AUTH_KEY")

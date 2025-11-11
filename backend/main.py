@@ -3,7 +3,8 @@ from contextlib import asynccontextmanager
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from modules.db import User, create_db_and_tables
+from modules.db import create_db_and_tables
+from modules.models import User
 from modules.schemas import UserCreate, UserRead, UserUpdate
 from modules.users import auth_backend, current_active_user, fastapi_users, google_oauth_client, auth_backend
 import os
@@ -11,7 +12,6 @@ import os
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Not needed if you setup a migration system like Alembic
     await create_db_and_tables()
     yield
 

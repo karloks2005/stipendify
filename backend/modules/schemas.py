@@ -2,28 +2,72 @@ import uuid
 
 from fastapi_users import schemas
 from typing import Optional
-
-
-class OAuthAccountRead(schemas.BaseOAuthAccount):
-    pass
+from modules.models import UserRole
+from pydantic import BaseModel
 
 
 class UserRead(schemas.BaseUser[uuid.UUID]):
-    first: Optional[str]
-    last: Optional[str]
-    company_name: Optional[str]
-    is_orga: bool
+    first_name: Optional[str]
+    last_name: Optional[str]
+    role: UserRole
 
 
 class UserCreate(schemas.BaseUserCreate):
-    first: Optional[str]
-    last: Optional[str]
-    company_name: Optional[str]
-    is_orga: bool
+    first_name: Optional[str]
+    last_name: Optional[str]
+    organisation_id: Optional[uuid.UUID] = None
 
 
 class UserUpdate(schemas.BaseUserUpdate):
-    first: Optional[str] = None
-    last: Optional[str] = None
-    company_name: Optional[str] = None
-    is_orga: Optional[bool] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    organisation_id: Optional[uuid.UUID] = None
+
+
+class UserCreate(schemas.BaseUserCreate):
+    first_name: Optional[str]
+    last_name: Optional[str]
+    organisation_id: Optional[uuid.UUID] = None
+
+
+class ScholarshipBase(BaseModel):
+    scholarship_name: str
+    scholarship_value: int
+    scholarship_link: str
+    organisation_work: bool = False
+    min_grade_average: Optional[float] = None
+    field_of_study: Optional[str] = None
+    type_of_study: Optional[str] = None
+    min_year_of_study: Optional[int] = None
+    length_of_scholarship: str
+    length_of_work: Optional[str] = None
+    important_dates: dict
+
+    class Config:
+        orm_mode = True
+
+
+class ScholarshipCreate(ScholarshipBase):
+    pass  # ima sva polja kao ScholarshipBase
+
+
+class ScholarshipUpdate(BaseModel):
+    scholarship_name: Optional[str] = None
+    scholarship_value: Optional[int] = None
+    scholarship_link: Optional[str] = None
+    organisation_work: Optional[bool] = None
+    min_grade_average: Optional[float] = None
+    field_of_study: Optional[str] = None
+    type_of_study: Optional[str] = None
+    min_year_of_study: Optional[int] = None
+    length_of_scholarship: Optional[str] = None
+    length_of_work: Optional[str] = None
+    important_dates: Optional[dict] = None
+
+    class Config:
+        orm_mode = True
+
+
+class ScholarshipRead(ScholarshipBase):
+    scholarship_id: uuid.UUID
+    organisation_id: uuid.UUID
