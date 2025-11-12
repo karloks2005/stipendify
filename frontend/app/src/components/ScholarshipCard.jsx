@@ -2,13 +2,19 @@ import { useState } from 'react'
 
 export default function ScholarshipCard({ scholarship }) {
   const {
-    title,
-    organization,
-    amount,
-    deadline,
-    tags = [],
+    name,
+    value,
+    url,
+    organisation_work,
+    min_grade_average,
+    field_of_study,
+    min_year_of_study,
+    length_of_scholarship,
+    length_of_work,
+    important_dates,
+    id,
     description = '',
-    link = '#'
+    organization_id,
   } = scholarship;
 
   const [expanded, setExpanded] = useState(false)
@@ -20,8 +26,8 @@ export default function ScholarshipCard({ scholarship }) {
   return (
     <article className={`bg-white rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-150 overflow-hidden flex flex-col`}> 
       <div className="p-6 flex-1">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        <p className="text-sm text-gray-600 mt-1">{organization} • <span className="font-medium">{amount}</span></p>
+        <h3 className="text-lg font-semibold text-gray-900">{name}</h3>
+        <p className="text-sm text-gray-600 mt-1">{organization_id} • <span className="font-medium">{value}</span></p>
 
         {/* Description container: constrained when collapsed so only text scroll/clip is applied here */}
         <div className={`${expanded ? '' : 'overflow-hidden max-h-36'} mt-3`}> 
@@ -32,11 +38,12 @@ export default function ScholarshipCard({ scholarship }) {
 
         {/* Tags + toggle live outside the clipped area so the toggle is always visible */}
         <div className="mt-3 flex items-center justify-between">
+          {/*
           <div className="flex flex-wrap gap-2">
             {tags.slice(0, 4).map((t) => (
               <span key={t} className="text-xs bg-blue-200 text-gray-700 px-2 py-1 rounded-md">{t}</span>
             ))}
-          </div>
+          </div>*/}
 
           {isLong && (
             <button
@@ -52,9 +59,9 @@ export default function ScholarshipCard({ scholarship }) {
 
       <div className="p-4 border-t border-gray-100 bg-gray-50">
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <div>Deadline: <span className="font-medium text-gray-800">{deadline}</span></div>
+          <div>Deadline: <span className="font-medium text-gray-800">{"placeholder"}</span></div>
           <a
-            href={link}
+            href={"#"}
             className="inline-block bg-black text-white px-4 py-2 rounded-xl text-sm font-bold shadow-2xl hover:opacity-95"
             target="_blank"
             rel="noreferrer"

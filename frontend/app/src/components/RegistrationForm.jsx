@@ -7,11 +7,11 @@ export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToL
       {/* lijevi plavi panel */}
       <div className="w-1/3 bg-blue-400 text-white rounded-lg p-10 mr-12 shadow-md">
         <h1 className="text-4xl font-bold tracking-wide mb-6">STIPENDIFY</h1>
-        <h3 className="uppercase mb-4">Pronađi prilike.<br />Podrži talente.</h3>
+        <h3 className="uppercase mb-4">Pronađi prilike | Podrži talente</h3>
         <p className="text-sm leading-relaxed">
-          Studenti uz Stipendify pretražuju relevantne stipendije, spremaju favorite i prate rokove bez buke. 
-          Organizacijama nudi brz unos natječaja, vidljivost prema pravim kandidatima, upravljanje prijavama 
-          i preglednu analitiku — sve na jednom mjestu.
+          Studenti uz Stipendify s lakoćom pretražuju dostupne stipendije i prate rokove bez muke. Stipendify
+          organizacijama omogućuje brz i jednostavan način za objavu i upravljanje stipendijama. Povezujemo
+          talentirane studente s pravim prilikama, olakšavajući im put do uspjeha.
         </p>
       </div>
 

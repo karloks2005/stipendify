@@ -23,7 +23,7 @@ function LoginAndRegisterPage() {
     lastName: '',
     orgName: '',
     email: '',
-    password: '',
+    password: '', 
     confirm: ''
   })
 
@@ -106,10 +106,8 @@ function LoginAndRegisterPage() {
     let payload = {
       "email": regData.email,
       "password": regData.password,
-      "first": regData.firstName,
-      "last": regData.lastName,
-      "company_name": regData.orgName,
-      "is_orga": regData.role === 'organization'
+      "first_name": regData.firstName,
+      "last_name": regData.lastName,
     }
     fetch("http://localhost:8888/auth/register", {
       method: "POST",
