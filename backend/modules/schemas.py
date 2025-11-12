@@ -31,20 +31,20 @@ class UserCreate(schemas.BaseUserCreate):
 
 
 class ScholarshipBase(BaseModel):
-    scholarship_name: str
-    scholarship_value: int
-    scholarship_link: str
+    name: str
+    value: int
+    url: str
     organisation_work: bool = False
     min_grade_average: Optional[float] = None
     field_of_study: Optional[str] = None
     type_of_study: Optional[str] = None
     min_year_of_study: Optional[int] = None
-    length_of_scholarship: str
+    length_of_scholarship: Optional[str] = None
     length_of_work: Optional[str] = None
-    important_dates: dict
+    important_dates: Optional[dict] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ScholarshipCreate(ScholarshipBase):
@@ -52,9 +52,9 @@ class ScholarshipCreate(ScholarshipBase):
 
 
 class ScholarshipUpdate(BaseModel):
-    scholarship_name: Optional[str] = None
-    scholarship_value: Optional[int] = None
-    scholarship_link: Optional[str] = None
+    name: Optional[str] = None
+    value: Optional[int] = None
+    url: Optional[str] = None
     organisation_work: Optional[bool] = None
     min_grade_average: Optional[float] = None
     field_of_study: Optional[str] = None
@@ -65,9 +65,9 @@ class ScholarshipUpdate(BaseModel):
     important_dates: Optional[dict] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class ScholarshipRead(ScholarshipBase):
-    scholarship_id: uuid.UUID
-    organisation_id: uuid.UUID
+    id: uuid.UUID
+    organisation_id: Optional[uuid.UUID] = None

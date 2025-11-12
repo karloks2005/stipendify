@@ -1,4 +1,3 @@
-# models.py
 from enum import Enum
 from typing import List
 
@@ -22,8 +21,6 @@ from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
 
-
-# ---------- FastAPI-Users core ----------
 
 class OAuthAccount(SQLAlchemyBaseOAuthAccountTableUUID, Base):
     pass
@@ -142,33 +139,33 @@ class UserForm(Base):
 class Scholarship(Base):
     __tablename__ = "scholarship"
 
-    scholarship_id = Column(
+    id = Column(
         UUID(as_uuid=True),
         primary_key=True,
         server_default=text("gen_random_uuid()"),
     )
-    scholarship_name = Column(Text, nullable=False)
-    scholarship_value = Column(Integer, nullable=False)
-    scholarship_link = Column(Text, nullable=False)
+    name = Column(Text, nullable=False)
+    value = Column(Integer, nullable=True)
+    url = Column(Text, nullable=False)
     organisation_work = Column(
         Boolean, nullable=False, server_default=text("FALSE"))
     min_grade_average = Column(Numeric(3, 2), nullable=True)
     field_of_study = Column(Text, nullable=True)
     type_of_study = Column(Text, nullable=True)
     min_year_of_study = Column(Integer, nullable=True)
-    length_of_scholarship = Column(INTERVAL, nullable=False)
+    length_of_scholarship = Column(INTERVAL, nullable=True)
     length_of_work = Column(INTERVAL, nullable=True)
-    important_dates = Column(JSONB, nullable=False)
+    important_dates = Column(JSONB, nullable=True)
 
     organisation_id = Column(
         UUID(as_uuid=True),
         ForeignKey("organisation.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
     )
 
     __table_args__ = (
         CheckConstraint(
-            "scholarship_value > 0",
+            "value > 0",
             name="ck_scholarship_value",
         ),
         CheckConstraint(
@@ -177,7 +174,7 @@ class Scholarship(Base):
         ),
         CheckConstraint(
             """type_of_study IS NULL OR type_of_study IN (
-                'Brucoš', 'Prijediplomski', 'Diplomski',
+                'Prijediplomski', 'Diplomski',
                 'Stručni',
                 'Poslijediplomski doktorski',
                 'Specijalistički diplomski stručni',

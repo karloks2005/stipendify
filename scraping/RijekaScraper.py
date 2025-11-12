@@ -1,20 +1,26 @@
+import sys
 import requests
 from bs4 import BeautifulSoup
 import re
-from RijekaUrlGetter import RijekaUrlGetter
-from RijekaAmountScraper import RijekaIznosiScraper
+
+if __name__ == "__main__":
+    from RijekaUrlGetter import RijekaUrlGetter
+    from RijekaAmountGetter import RijekaIznosiScraper
+else:
+    from scraping.RijekaUrlGetter import RijekaUrlGetter
+    from scraping.RijekaAmountGetter import RijekaIznosiScraper
 
 
 class RijekaScraper:
     def __init__(self, url):
         self.url = url
         self.soup = self.get_soup()
-        
+
     def get_soup(self):
         response = requests.get(self.url)
         response.encoding = "utf-8"
         return BeautifulSoup(response.text, 'html.parser')
-    
+
     def get_title(self):
         h1 = self.soup.find('h1')
         return h1.get_text(strip=True) if h1 else None
@@ -29,7 +35,8 @@ class RijekaScraper:
             return []
 
         html_str = str(div)
-        cutoff_match = re.search(r'boduj[eu]\s+se\s+prema', html_str, re.IGNORECASE)
+        cutoff_match = re.search(
+            r'boduj[eu]\s+se\s+prema', html_str, re.IGNORECASE)
         if cutoff_match:
             html_str = html_str[:cutoff_match.start()]
 
@@ -50,7 +57,7 @@ class RijekaScraper:
                 all_conditions.append(text)
 
         return all_conditions
-    
+
     def get_page_title(self):
         title_div = self.soup.find('div', class_='page-title')
         if title_div:
@@ -59,7 +66,6 @@ class RijekaScraper:
                 return h1.get_text(strip=True)
         return None
 
-    
     def get_categories(self):
         text = self.get_details().lower()
         categories = []
@@ -78,31 +84,35 @@ class RijekaScraper:
     def get_all(self):
         return {
             "title": self.get_title(),
+            "url": self.url,
             "categories": self.get_categories(),
             "uvjeti": self.get_lists(),
             "trajanje": self.get_durations()
         }
+
     def get_matching_iznos_text(self):
         page_title = self.get_page_title()
         if not page_title:
             return None
 
-        match_page = re.search(r"prema kategoriji\s*(.+)", page_title, re.IGNORECASE)
+        match_page = re.search(r"prema kategoriji\s*(.+)",
+                               page_title, re.IGNORECASE)
         if not match_page:
             return None
         page_category = match_page.group(1).strip().lower()
-        iznos_scraper = RijekaIznosiScraper("https://www.rijeka.hr/natjecaji-za-stipendije-grada-rijeke/")
+        iznos_scraper = RijekaIznosiScraper(
+            "https://www.rijeka.hr/natjecaji-za-stipendije-grada-rijeke/")
         iznosi = iznos_scraper.get_stipendije()
 
         for entry in iznosi:
-            match_iznos = re.search(r"prema kategoriji\s*(.+)", entry["naslov"], re.IGNORECASE)
+            match_iznos = re.search(
+                r"prema kategoriji\s*(.+)", entry["naslov"], re.IGNORECASE)
             if match_iznos:
                 iznos_category = match_iznos.group(1).strip().lower()
                 if iznos_category == page_category:
                     return entry["tekst"]
 
         return None
-
 
     def __str__(self):
         data = self.get_all()
@@ -128,12 +138,22 @@ class RijekaScraper:
         return text
 
 
+def scrape():
+    url = "https://www.rijeka.hr/teme-za-gradane/odgoj-i-obrazovanje/stipendije/"
+    out = []
+    for l in RijekaUrlGetter(url).get_links():
+        try:
+            out.append(RijekaScraper(l).get_all())
+        except Exception as e:
+            print(f"Loading {l} failed, skipping\n{e}", file=sys.stderr)
+
+
 if __name__ == "__main__":
     url = "https://www.rijeka.hr/teme-za-gradane/odgoj-i-obrazovanje/stipendije/"
     getter = RijekaUrlGetter(url)
     links = getter.get_links()
     print(getter)
-    
+
     if links:
         for i, link in enumerate(links, start=1):
             print(f"\n=== Stipendija {i} ===")

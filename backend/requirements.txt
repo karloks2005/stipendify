@@ -3,3 +3,6 @@ uvicorn >= 0.37.0
 fastapi-users [sqlalchemy,oauth] >= 14.0.1
 SQLAlchemy [postgresql-asyncpg] >= 2.0.44
 asyncpg >= 0.30.0
+beautifulsoup4 >= 4.14.2
+requests >= 2.32.5
+pypdf >= 6.2.0
