@@ -198,7 +198,7 @@ class SibenikScraper:
                     continue
 
         if all_amounts:
-            return [f"{int(amt)}" if amt == int(amt) else f"{amt:.2f}" for amt in sorted(all_amounts)]
+            return [int(amt)for amt in all_amounts]
 
         return None
 
@@ -221,7 +221,8 @@ class SibenikScraper:
             "date_range": self.get_date_range(),
             "details": self.get_details(),
             "categories": self.get_categories(),
-            "iznosi": self.get_amounts()
+            "iznos": max(self.get_amounts() + [0]),
+            "org": "Grad Šibenik"
         }
 
     def __str__(self):

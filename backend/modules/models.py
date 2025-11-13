@@ -85,6 +85,14 @@ class Organisation(Base):
         cascade="all, delete-orphan",
     )
 
+    def __eq__(self, other):
+        if self.__class__ != other.__class__:
+            return False
+        return hash(self) == hash(other)
+
+    def __hash__(self):
+        return hash((self.name, self.oib, self.address))
+
 
 class UserForm(Base):
     __tablename__ = "user_form"
@@ -156,6 +164,7 @@ class Scholarship(Base):
     length_of_scholarship = Column(INTERVAL, nullable=True)
     length_of_work = Column(INTERVAL, nullable=True)
     important_dates = Column(JSONB, nullable=True)
+    description = Column(Text, nullable=True)
 
     organisation_id = Column(
         UUID(as_uuid=True),

@@ -32,10 +32,10 @@ class ZagrebScraper:
     def get_details_div(self):
         return self.soup.find('div', class_='opis')
 
-    def get_amounts(self):
+    def get_amount(self):
         details = self.get_details()
         amount_pattern = r"(\d{2,3}(?:[.,]\d{2})?)\s*eura"
-        return re.findall(amount_pattern, details, flags=re.IGNORECASE)
+        return max([int(float(x.replace(",", "."))) for x in re.findall(amount_pattern, details, flags=re.IGNORECASE)] + [0])
 
     def get_durations(self):
         details = self.get_details()
@@ -47,15 +47,16 @@ class ZagrebScraper:
         title = self.get_title()
         date = self.get_date()
         details = self.get_details()
-        iznosi = self.get_amounts()
+        iznos = self.get_amount()
         trajanje = self.get_durations()
         return {
             "title": title,
             "url": self.url,
             "date": date,
             "details": details,
-            "iznosi": iznosi,
-            "trajanje": trajanje
+            "iznos": iznos,
+            "trajanje": trajanje,
+            "org": "Grad Zagreb"
         }
 
     def __str__(self):

@@ -1,7 +1,7 @@
 import glob
 import sys
 import importlib
-from modules.models import Scholarship
+from modules.models import Scholarship, Organisation
 
 
 def scrape_scholarships():
@@ -16,8 +16,14 @@ def scrape_scholarships():
                 sc = Scholarship(
                     name=n["title"],
                     url=n["url"],
-                    value=int(n["iznosi"][0]))
-                data.append(sc)
+                    description=n["details"],
+                    value=n["iznos"] or None)
+                org = Organisation(
+                    name=n["org"],
+                    oib=n["org"].zfill(11)[-11:],
+                    address=n["org"]
+                )
+                data.append((sc, org))
         except Exception as e:
             print(f"Loading data from {
                   f} failed, skipping:\n{e}", file=sys.stderr)

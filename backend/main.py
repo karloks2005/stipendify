@@ -7,7 +7,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from modules.db import create_db_and_tables, async_session_maker, engine
-from modules.models import User, Scholarship
+from modules.models import User, Scholarship, Organisation
 from modules.schemas import UserCreate, UserRead, UserUpdate
 from modules.users import auth_backend, current_active_user, fastapi_users, google_oauth_client, auth_backend
 import os
@@ -76,23 +76,41 @@ async def authenticated_route(user: User = Depends(current_active_user)):
 async def load_scholarships_async():
     print("Loading new scholarships!!", file=sys.stderr)
     data = scrape_scholarships()
-    urls = [s.url for s in data]
+    urls = set(s.url for s, _ in data)
+    oibs = set(org.oib for _, org in data)
 
     async with async_session_maker() as session:
-        existing = await session.execute(
-            select(Scholarship.url).where(Scholarship.url.in_(urls)))
-        existing = set(existing.scalars().all())
-        new = [x for x in data if x.url not in existing]
-        print(f"Adding {len(new)} NEW scholarships", file=sys.stderr)
-        print(new, file=sys.stderr)
-        session.add_all(new)
-        print("added", file=sys.stderr)
+        def add_orgid(s, o, new_orgs):
+            org = next(filter(o.__eq__, new_orgs))
+            print(org, org.id, file=sys.stderr)
+            s.organisation_id = org.id
+            return s
         try:
+            existing_urls = set((await session.scalars(
+                select(Scholarship.url).where(Scholarship.url.in_(urls)))).all())
+            existing_oibs = set((await session.scalars(
+                select(Organisation.oib).where(Organisation.oib.in_(oibs)))).all())
+            new_orgs = set(
+                o for _, o in data if o.oib not in existing_oibs)
+            print(f"trying to add {
+                  [x.__dict__ for x in new_orgs]}", file=sys.stderr)
+            session.add_all(new_orgs)
+            print("added", file=sys.stderr)
+            print("trying to flush", file=sys.stderr)
+            await session.flush()
+            print("flushed", file=sys.stderr)
+            new_sch = set(
+                add_orgid(s, org, new_orgs) for s, org in data if s.url not in existing_urls)
+
+            print(f"Adding {len(new_sch)} new scholarships (and {
+                len(new_orgs)} orgs)", file=sys.stderr)
+            session.add_all(new_sch)
+            print("added")
+
             await session.commit()
             print("commited", file=sys.stderr)
         except Exception as e:
-            print("failed", file=sys.stderr)
-            print(e, file=sys.stderr)
+            print(f"failed ({type(e)}): {e}", file=sys.stderr)
 
 
 async def load_scholarships_loop():
