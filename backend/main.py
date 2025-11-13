@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(CORSMiddleware, allow_origins=[
-    "http://localhost:3000"], allow_methods=["GET", "POST"], allow_headers=["authorization"], allow_credentials=True)
+    "http://localhost:3000", "https://stipendify.tk0.eu"], allow_methods=["GET", "POST"], allow_headers=["authorization"], allow_credentials=True)
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
@@ -60,7 +60,11 @@ app.include_router(
 SECRET = os.getenv("AUTH_KEY")
 app.include_router(
     fastapi_users.get_oauth_router(
-        google_oauth_client, auth_backend, SECRET, associate_by_email=True, redirect_url="http://localhost:3000/callback"),
+        google_oauth_client,
+        auth_backend,
+        SECRET,
+        associate_by_email=True,
+        redirect_url="https://stipendify.tk0.eu/callback"),
     prefix="/auth/google",
     tags=["auth"],
 )
@@ -119,4 +123,5 @@ async def load_scholarships_loop():
         await asyncio.sleep(8*60*60)
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=5000)
+    uvicorn.run("main:app", host="0.0.0.0", port=5000,
+                forwarded_allow_ips=["stipendify_backend_1", "10.89.1.2", "10.89.0.3"])

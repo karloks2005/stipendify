@@ -6,26 +6,21 @@ from modules.models import UserRole
 from pydantic import BaseModel
 
 
-class UserBase(schemas.BaseUser[uuid.UUID]):
+class UserCommon():
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     organisation_id: Optional[uuid.UUID] = None
+
+
+class UserRead(schemas.BaseUser[uuid.UUID], UserCommon):
     role: UserRole
 
 
-class UserRead(UserBase):
+class UserCreate(schemas.BaseUserCreate, UserCommon):
     pass
 
 
-class UserCreate(UserBase):
-    pass
-
-
-class UserUpdate(UserBase):
-    pass
-
-
-class UserCreate(UserBase):
+class UserUpdate(schemas.BaseUserUpdate, UserCommon):
     pass
 
 
