@@ -8,15 +8,15 @@ export default function CallbackPage() {
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(true);
   const hasRunRef = useRef(false);
+  const controllerRef = useRef(null);
 
   useEffect(() => {
     if (hasRunRef.current) return;
     hasRunRef.current = true;
-    // Parse query params (e.g., ?code=...&state=...) and any fragment/hash params
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    const state = params.get('state');
-    const err = params.get('error');
+  // Parse query params (e.g., ?code=...&state=...) and any fragment/hash params
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const err = params.get('error');
 
     // Some providers return additional values in the URL fragment (after #).
     // The fragment is not sent to the server by the browser, so capture any
@@ -54,8 +54,14 @@ export default function CallbackPage() {
     const exchangeQs = params.toString();
     const exchangeUrl = exchangeQs ? `${exchangeBase}?${exchangeQs}` : exchangeBase;
 
+    // start exchange
+    controllerRef.current = new AbortController();
+    const signal = controllerRef.current.signal;
+
     fetch(exchangeUrl, {
       method: 'GET',
+      credentials: 'include',
+      signal,
       headers: {
         'Accept': 'application/json'
       }
@@ -65,14 +71,26 @@ export default function CallbackPage() {
         try {
           const data = await res.json().catch(() => null);
             // If backend provided an access token shape, call login helper.
-            if (data?.access_token) {
-              login(data);
-              console.log("yayyy");
-              navigate('/', { replace: true });
+            // Accept several token shapes from backend
+            const token = data?.access_token || data?.accessToken || data?.token || data?.access || null;
+            if (token) {
+              try {
+                await login({ access_token: token });
+              } catch (err) {
+                console.warn('login rehydration failed', err);
+              }
+              console.log('OAuth exchange succeeded; navigating to /stipendije');
+              navigate('/stipendije', { replace: true });
               return;
             }
-          
-          navigate('/', { replace: true });
+
+            // If no token returned, try cookie-based rehydration by calling login()
+            try {
+              await login({});
+            } catch (err) {
+              console.warn('cookie rehydration failed', err);
+            }
+            navigate('/stipendije', { replace: true });
         } catch (err) {
           console.error('Callback handling error', err);
           setError('Failed to process callback response');

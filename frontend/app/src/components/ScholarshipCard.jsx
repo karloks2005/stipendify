@@ -13,29 +13,34 @@ export default function ScholarshipCard({ scholarship }) {
     length_of_work,
     important_dates,
     id,
-    description = '',
-    organization_id,
+    description = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
+    organization_id = "Grad Šibenik",
   } = scholarship;
 
   const [expanded, setExpanded] = useState(false)
   // Shorter default so sample descriptions show the toggle during development
-  const TRUNCATE_LENGTH = 250
+  const TRUNCATE_LENGTH = 150
   const isLong = description && description.length > TRUNCATE_LENGTH
   const preview = isLong ? description.slice(0, TRUNCATE_LENGTH).trimEnd() : description
 
   return (
     <article className={`bg-white rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-150 overflow-hidden flex flex-col`}> 
-      <div className="p-6 flex-1">
+      <div className="px-6 py-4 flex-1">
         <h3 className="text-lg font-semibold text-gray-900">{name}</h3>
-        <p className="text-sm text-gray-600 mt-1">{organization_id} • <span className="font-medium">{value}</span></p>
-
+        <div className='flex justify-between items-center mt-2'>
+          <div className='text-sm bg-blue-200 p-2 text-blue-400 font-semibold rounded-md'>
+            Grad Šibenik
+          </div>
+          <div className="text-sm text-gray-600 bg-gray-300 p-2 font-semibold rounded-md">
+            {value + "€"}
+          </div>
+        </div>
         {/* Description container: constrained when collapsed so only text scroll/clip is applied here */}
         <div className={`${expanded ? '' : 'overflow-hidden max-h-36'} mt-3`}> 
           <p className="text-sm text-gray-500">
             {expanded || !isLong ? description : `${preview}...`}
           </p>
         </div>
-
         {/* Tags + toggle live outside the clipped area so the toggle is always visible */}
         <div className="mt-3 flex items-center justify-between">
           {/*
@@ -49,7 +54,7 @@ export default function ScholarshipCard({ scholarship }) {
             <button
               onClick={() => setExpanded((v) => !v)}
               aria-expanded={expanded}
-              className="ml-4 text-sm text-blue-600 hover:underline"
+              className="mr-0 text-sm text-blue-600 hover:underline"
             >
               {expanded ? 'Show less' : 'Show more'}
             </button>
@@ -57,17 +62,23 @@ export default function ScholarshipCard({ scholarship }) {
         </div>
       </div>
 
-      <div className="p-4 border-t border-gray-100 bg-gray-50">
+      <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <div>Deadline: <span className="font-medium text-gray-800">{"placeholder"}</span></div>
-          <a
-            href={"#"}
-            className="inline-block bg-black text-white px-4 py-2 rounded-xl text-sm font-bold shadow-2xl hover:opacity-95"
-            target="_blank"
-            rel="noreferrer"
-          >
-            View
-          </a>
+          <div>Krajnji rok: <span className="font-medium text-gray-800">{"14.11.2025"}</span></div>
+          <div>
+            <button
+              onClick={() => {}}
+              className="inline-block mr-4 bg-gray-900 hover:scale-105 duration-150 text-gray-100 px-4 py-1.5 rounded-xl text-sm font-bold shadow-2xl hover:opacity-95"
+            >
+              Dodaj u kalendar
+          </button>
+          <button
+              onClick={() => {}}
+              className="inline-block bg-gray-900 hover:scale-105 duration-150 text-gray-100 px-4 py-1.5 rounded-xl text-sm font-bold shadow-2xl hover:opacity-95"
+            >
+              Potsjeti me
+          </button>
+          </div>
         </div>
       </div>
     </article>

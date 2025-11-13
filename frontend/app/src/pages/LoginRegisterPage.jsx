@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/Button'
 import InputField from '../components/InputField'
@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext'
 
 function LoginAndRegisterPage() {
   const [mode, setMode] = useState('register') // register ili login
-  const { login, user } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   // login state
@@ -15,6 +15,7 @@ function LoginAndRegisterPage() {
     email: '',
     password: ''
   })
+  const [loginPending, setLoginPending] = useState(false)
 
   // registration state
   const [regData, setRegData] = useState({
@@ -32,31 +33,47 @@ function LoginAndRegisterPage() {
     setLoginData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleLoginSubmit = (e) => {
-  e.preventDefault();
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    if (loginPending) return;
+    setLoginPending(true);
 
-  const payload = new URLSearchParams();
-  payload.append("username", loginData.email);
-  payload.append("password", loginData.password);
+    const payload = new URLSearchParams();
+    payload.append("username", loginData.email);
+    payload.append("password", loginData.password);
 
-  fetch("http://localhost:8888/auth/jwt/login", {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: payload.toString(),
-  }).then((response) => {
-    // Successful login
-    if (response.ok) {
-      response.json().then((data) => {
-        // after successful fetch and login(context)
-        login(data);             // set context
-        navigate('/', { replace:true }); // SPA navigation
+    try {
+      const response = await fetch("http://localhost:8888/auth/jwt/login", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: payload.toString(),
       });
-    } else {
-      console.log("Login failed");
+
+      if (!response.ok) {
+        console.log("Login failed");
+        setLoginPending(false);
+        return;
+      }
+
+      // Try parse JSON body (may contain tokens or redirect info)
+      const data = await response.json().catch(() => null);
+
+      // Await auth provider rehydration so HomePage won't race
+      try {
+        await login(data || {});
+      } catch (err) {
+        console.warn('login rehydration failed', err);
+      }
+
+      // Navigate after login is fully applied
+      navigate('/stipendije');
+    } catch (err) {
+      console.error('Network error during login', err);
+    } finally {
+      setLoginPending(false);
     }
-  });
-};
+  };
 
 
   const handleRegChange = (e) => {
@@ -153,7 +170,7 @@ function LoginAndRegisterPage() {
               placeholder="Unesite lozinku"
             />
 
-            <Button type="button" onClick={handleLoginSubmit}>Prijavi se!</Button>
+            <Button type="submit" onClick={handleLoginSubmit} disabled={loginPending}>{loginPending ? 'Prijavljivanje...' : 'Prijavi se!'}</Button>
           </form>
         </div>
       </div>
