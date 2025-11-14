@@ -27,7 +27,8 @@ Razvojni paket za izvlačenje podataka iz HTML i XML datoteka.
 ### SQLAlchemy
 Razvojni paket za interakciju Python programa i relacijskih baza podataka pomoću ORM modela.
 
-# Instalacija
+# Pristup
+https://stipendify.tk0.eu/
 
 # Članovi tima 
 [Petar Gavrić](https://github.com/Petar-Gavric) <br>
