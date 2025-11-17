@@ -124,4 +124,4 @@ async def load_scholarships_loop():
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=5000,
-                forwarded_allow_ips=["stipendify_backend_1", "10.89.1.2", "10.89.0.3"])
+                forwarded_allow_ips=["stipendify_backend_1", "10.89.1.2", "10.89.0.3", "10.89.17.3"])

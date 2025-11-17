@@ -21,6 +21,11 @@ services:
       - default
       - db-network
     restart: unless-stopped
+  frontend:
+    build: frontend/app
+    ports:
+      - 8887:80
+    restart: unless-stopped
   
 
 networks: 
