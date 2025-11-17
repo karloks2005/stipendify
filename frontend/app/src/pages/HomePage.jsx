@@ -28,7 +28,7 @@ function HomePage() {
         const headers = {};
         if (accessToken) headers['Authorization'] = `Bearer ${accessToken}`;
 
-        const response = await fetch('http://localhost:8888/scholarships', {
+        const response = await fetch('https://stipendify-backend.tk0.eu/scholarships/', {
           method: 'GET',
           credentials: 'include',
           headers,

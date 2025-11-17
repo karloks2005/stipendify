@@ -50,7 +50,7 @@ export default function CallbackPage() {
     // Call backend exchange endpoint. fastapi-users typically exposes
     // /auth/google/callback which accepts the code and performs the exchange.
     // Forward the full set of params (query + fragment) to the backend.
-    const exchangeBase = 'http://localhost:8888/auth/google/callback';
+    const exchangeBase = 'https://stipendify-backend.tk0.eu/auth/google/callback';
     const exchangeQs = params.toString();
     const exchangeUrl = exchangeQs ? `${exchangeBase}?${exchangeQs}` : exchangeBase;
 

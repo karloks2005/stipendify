@@ -43,7 +43,7 @@ function LoginAndRegisterPage() {
     payload.append("password", loginData.password);
 
     try {
-      const response = await fetch("http://localhost:8888/auth/jwt/login", {
+      const response = await fetch("https://stipendify-backend.tk0.eu/auth/jwt/login", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -88,7 +88,7 @@ function LoginAndRegisterPage() {
     // or similar. If that fails we fall back to navigating directly to the oauth route.
     (async () => {
       try {
-        const resp = await fetch('http://localhost:8888/auth/google/authorize', {
+        const resp = await fetch('https://stipendify-backend.tk0.eu/auth/google/authorize', {
           method: 'GET',
           credentials: 'include',
           headers: { Accept: 'application/json' },
@@ -126,7 +126,7 @@ function LoginAndRegisterPage() {
       "first_name": regData.firstName,
       "last_name": regData.lastName,
     }
-    fetch("http://localhost:8888/auth/register", {
+    fetch("https://stipendify-backend.tk0.eu/auth/register", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
