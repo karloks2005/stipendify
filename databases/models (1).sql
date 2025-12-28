@@ -92,3 +92,18 @@ CREATE TABLE scholarship (
     CONSTRAINT ck_scholarship_year_of_study
         CHECK (min_year_of_study IN (0,1,2,3,4,5))
 );
+CREATE TABLE email_reminder (
+
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    email VARCHAR(320) NOT NULL,
+    is_sent BOOLEAN NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    remind_at TIMESTAMO NOT NULL,
+    scholarship_id UUID NOT NULL,
+
+    CONSTRAINT fk_email_reminder_user
+        FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE,
+    CONSTRAINT fk_email_reminder_user
+        FOREIGN KEY (scholarship_id) REFERENCES "user"(id) ON DELETE CASCADE
+);
