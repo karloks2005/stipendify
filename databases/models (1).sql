@@ -99,7 +99,7 @@ CREATE TABLE email_reminder (
     email VARCHAR(320) NOT NULL,
     is_sent BOOLEAN NOT NULL,
     created_at TIMESTAMP NOT NULL,
-    remind_at TIMESTAMO NOT NULL,
+    remind_at TIMESTAMP NOT NULL,
     scholarship_id UUID NOT NULL,
 
     CONSTRAINT fk_email_reminder_user
