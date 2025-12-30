@@ -4,6 +4,8 @@ from fastapi_users import schemas
 from typing import Optional
 from modules.models import UserRole
 from pydantic import BaseModel
+from datetime import datetime
+
 
 
 class UserCommon():
@@ -54,3 +56,34 @@ class ScholarshipUpdate(ScholarshipBase):
 class ScholarshipRead(ScholarshipBase):
     id: uuid.UUID
     organisation_id: Optional[uuid.UUID] = None
+
+class EmailReminderBase(BaseModel):
+    user_id: uuid.UUID
+    scholarship_id: uuid.UUID
+    email: str
+    is_sent: bool
+    created_at: datetime
+    remind_at: datetime  
+
+    class Config:
+        from_attributes = True 
+
+class EmailReminderCreate(BaseModel):
+    user_id: uuid.UUID
+    scholarship_id: uuid.UUID
+    email: str
+    remind_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class EmailReminderRead(EmailReminderBase):
+    id: uuid.UUID
+
+class EmailReminderUpdate(BaseModel):
+    user_id: Optional[uuid.UUID] = None
+    scholarship_id: Optional[uuid.UUID] = None
+    email: Optional[str] = None
+    is_sent: Optional[bool] = None
+    created_at: Optional[datetime] = None
+    remind_at: Optional[datetime] = None

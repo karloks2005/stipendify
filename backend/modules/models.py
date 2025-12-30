@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import List
+from sqlalchemy import DateTime
 
 from fastapi_users.db import (
     SQLAlchemyBaseOAuthAccountTableUUID,
@@ -66,6 +67,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
         uselist=False,
         cascade="all, delete-orphan",
     )
+    email_reminders = relationship("EmailReminder", back_populates="user")
 
 
 class Organisation(Base):
@@ -196,5 +198,31 @@ class Scholarship(Base):
             name="ck_scholarship_year_of_study",
         ),
     )
-
+    email_reminders = relationship("EmailReminder", back_populates="scholarship")
     organisation = relationship("Organisation", back_populates="scholarships")
+class EmailReminder(Base):
+    __tablename__= "email_reminder"
+    id = Column( 
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("gen_random_uuid()"),
+    )
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    user = relationship("User", back_populates="email_reminders")
+    
+    email = Column(String(320), nullable=False)
+    is_sent = Column(Boolean, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    remind_at = Column(DateTime, nullable=False)
+    scholarship_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("scholarship.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    scholarship = relationship("Scholarship", back_populates="email_reminders")

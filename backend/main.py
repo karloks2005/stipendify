@@ -15,6 +15,8 @@ from modules.scrapers import scrape_scholarships
 import sys
 from sqlalchemy import select
 
+from modules.email_reminders import router as email_reminders_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -70,6 +72,7 @@ app.include_router(
 )
 
 app.include_router(scholarships_router)
+app.include_router(email_reminders_router)
 
 
 @app.get("/authenticated-route")

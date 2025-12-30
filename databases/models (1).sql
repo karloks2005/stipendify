@@ -104,6 +104,6 @@ CREATE TABLE email_reminder (
 
     CONSTRAINT fk_email_reminder_user
         FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE,
-    CONSTRAINT fk_email_reminder_user
-        FOREIGN KEY (scholarship_id) REFERENCES "user"(id) ON DELETE CASCADE
+    CONSTRAINT fk_email_reminder_scholarship
+        FOREIGN KEY (scholarship_id) REFERENCES "scholarship"(id) ON DELETE CASCADE
 );

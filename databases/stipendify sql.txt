@@ -1,0 +1,66 @@
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+DROP TABLE IF EXISTS Users CASCADE;
+CREATE TABLE Users
+(
+  user_id  UUID NOT NULL DEFAULT gen_random_uuid(),
+  user_email VARCHAR NOT NULL,
+  username VARCHAR NOT NULL,
+  user_password VARCHAR NOT NULL,
+  PRIMARY KEY (user_id),
+  UNIQUE (user_email),
+  UNIQUE (username)
+);
+
+DROP TABLE IF EXISTS user_form CASCADE;
+CREATE TABLE User_form
+(
+  city VARCHAR,
+  parents_death INT,
+  parents_veterans INT,
+  no_of_household_members INT,
+  invalidity_category INT,
+  sports_category INT,
+  SES CHAR,
+  user_id  UUID PRIMARY KEY,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id),
+  UNIQUE (user_id),
+  CONSTRAINT fk_userform_user
+    FOREIGN KEY (user_id)
+    REFERENCES "user"(user_id)
+    ON DELETE CASCADE,
+  CONSTRAINT chk_household CHECK (no_of_household_members >= 1),
+  CONSTRAINT chk_parent_vet CHECK (parents_veterans IN ('otac','majka','nitko')),
+  CONSTRAINT chk_ses CHECK (SES IN ('nizak','srednji','visok'))
+);
+
+DROP TABLE IF EXISTS organisation CASCADE;
+CREATE TABLE Organisation
+(
+  organisation_id  UUID PRIMARY KEY DEFAULT gen_random_uuid(),,
+  organisation_email VARCHAR NOT NULL,
+  organisation_name VARCHAR NOT NULL,
+  organisation_password VARCHAR NOT NULL,
+  PRIMARY KEY (organisation_id),
+  UNIQUE (organisation_email),
+  UNIQUE (organisation_name),
+  CONSTRAINT fk_sch_org
+    FOREIGN KEY (organisation_id)
+    REFERENCES organisation(organisation_id)
+    ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_scholarship_org
+  ON scholarship(organisation_id);
+
+DROP TABLE IF EXISTS scholarship CASCADE;
+CREATE TABLE scholarship
+(
+  scholarship_id  NOT NULL,
+  scholarship_name VARCHAR NOT NULL,
+  scholarship_value FLOAT NOT NULL,
+  scholarship_link VARCHAR NOT NULL,
+  organisation_id  NOT NULL,
+  PRIMARY KEY (scholarship_id),
+  FOREIGN KEY (organisation_id) REFERENCES Organisation(organisation_id)
+);
