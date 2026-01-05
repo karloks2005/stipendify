@@ -6,7 +6,10 @@ from sqlalchemy import select
 
 from modules.db import get_async_session
 from modules.models import EmailReminder
+from modules.models import EmailReminder, User 
 from modules.schemas import EmailReminderCreate, EmailReminderRead
+from modules.users import current_active_user  
+from modules.time_utils import to_utc_naive
 
 router = APIRouter(prefix="/email-reminders", tags=["email-reminders"])
 
@@ -14,13 +17,14 @@ router = APIRouter(prefix="/email-reminders", tags=["email-reminders"])
 @router.post("", response_model=EmailReminderRead)
 async def create_email_reminder(
     payload: EmailReminderCreate,
+    user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
     reminder = EmailReminder(
-        user_id=payload.user_id,
+        user_id=user.id, 
         scholarship_id=payload.scholarship_id,
         email=payload.email,
-        remind_at=payload.remind_at,
+        remind_at=to_utc_naive(payload.remind_at),
         created_at=datetime.utcnow(),
         is_sent=False,
     )
@@ -32,7 +36,9 @@ async def create_email_reminder(
 
 @router.get("", response_model=list[EmailReminderRead])
 async def list_email_reminders(
+    user: User = Depends(current_active_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    result = await session.execute(select(EmailReminder))
+    stmt = select(EmailReminder).where(EmailReminder.user_id == user.id)
+    result = await session.execute(stmt)
     return result.scalars().all()

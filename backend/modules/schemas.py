@@ -69,7 +69,6 @@ class EmailReminderBase(BaseModel):
         from_attributes = True 
 
 class EmailReminderCreate(BaseModel):
-    user_id: uuid.UUID
     scholarship_id: uuid.UUID
     email: str
     remind_at: datetime
@@ -81,7 +80,6 @@ class EmailReminderRead(EmailReminderBase):
     id: uuid.UUID
 
 class EmailReminderUpdate(BaseModel):
-    user_id: Optional[uuid.UUID] = None
     scholarship_id: Optional[uuid.UUID] = None
     email: Optional[str] = None
     is_sent: Optional[bool] = None

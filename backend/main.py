@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(CORSMiddleware, allow_origins=[
-    "http://localhost:3000", "https://stipendify.tk0.eu"], allow_methods=["GET", "POST"], allow_headers=["authorization"], allow_credentials=True)
+    "http://localhost:3000", "http://localhost:8888","https://stipendify.tk0.eu"], allow_methods=["GET", "POST"], allow_headers=["authorization"], allow_credentials=True)
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
