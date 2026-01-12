@@ -76,7 +76,7 @@ export default function ScholarshipCard({ scholarship }) {
               onClick={() => {}}
               className="inline-block bg-gray-900 hover:scale-105 duration-150 text-gray-100 px-4 py-1.5 rounded-xl text-sm font-bold shadow-2xl hover:opacity-95"
             >
-              Potsjeti me
+              Podsjeti me
           </button>
           </div>
         </div>
