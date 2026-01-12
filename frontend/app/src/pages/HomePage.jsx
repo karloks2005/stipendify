@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ScholarshipCard from '../components/ScholarshipCard'
+import ReminderForm from '../components/ReminderForm'
 import { useAuth } from '../context/AuthContext'
 
 function HomePage() {
   const [scholarships, setScholarships] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [selectedScholarshipId, setSelectedScholarshipId] = useState(null)
   const { accessToken, initializing, logout } = useAuth()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -49,6 +51,14 @@ function HomePage() {
     fetchScholarships()
   }, [initializing, accessToken])
 
+  const handleReminderClick = (scholarshipId) => {
+    setSelectedScholarshipId(scholarshipId)
+  }
+
+  const handleReminderClose = () => {
+    setSelectedScholarshipId(null)
+  }
+
   if (loading) return <div className="p-6">Loading scholarships...</div>
   if (error) return <div className="p-6 text-red-500">Error: {error}</div>
 
@@ -84,18 +94,23 @@ function HomePage() {
           <div className="lg:col-span-2 space-y-4">
             {scholarships.length > 0 ? (
               scholarships.map((s) => (
-                <ScholarshipCard key={s.id} scholarship={s} />
+                <ScholarshipCard 
+                  key={s.id} 
+                  scholarship={s}
+                  onReminderClick={handleReminderClick}
+                />
               ))
             ) : (
               <p>No scholarships found.</p>
             )}
           </div>
 
-          {/* Right area */}
+          {/* Right area - ReminderForm */}
           <aside className="hidden lg:block lg:col-span-1">
-            <div className="h-full min-h-[150px] rounded-lg border-2 border-dashed border-gray-200 bg-white/50 flex items-center justify-center text-gray-400">
-              Calendar and mail notifications (coming soon)
-            </div>
+            <ReminderForm 
+              scholarshipId={selectedScholarshipId}
+              onClose={handleReminderClose}
+            />
           </aside>
         </section>
       </div>

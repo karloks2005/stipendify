@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function ScholarshipCard({ scholarship }) {
+export default function ScholarshipCard({ scholarship, onReminderClick }) {
   const {
     name,
     value,
@@ -18,7 +18,6 @@ export default function ScholarshipCard({ scholarship }) {
   } = scholarship;
 
   const [expanded, setExpanded] = useState(false)
-  // Shorter default so sample descriptions show the toggle during development
   const TRUNCATE_LENGTH = 150
   const isLong = description && description.length > TRUNCATE_LENGTH
   const preview = isLong ? description.slice(0, TRUNCATE_LENGTH).trimEnd() : description
@@ -35,21 +34,12 @@ export default function ScholarshipCard({ scholarship }) {
             {value + "€"}
           </div>
         </div>
-        {/* Description container: constrained when collapsed so only text scroll/clip is applied here */}
         <div className={`${expanded ? '' : 'overflow-hidden max-h-36'} mt-3`}> 
           <p className="text-sm text-gray-500">
             {expanded || !isLong ? description : `${preview}...`}
           </p>
         </div>
-        {/* Tags + toggle live outside the clipped area so the toggle is always visible */}
         <div className="mt-3 flex items-center justify-between">
-          {/*
-          <div className="flex flex-wrap gap-2">
-            {tags.slice(0, 4).map((t) => (
-              <span key={t} className="text-xs bg-blue-200 text-gray-700 px-2 py-1 rounded-md">{t}</span>
-            ))}
-          </div>*/}
-
           {isLong && (
             <button
               onClick={() => setExpanded((v) => !v)}
@@ -71,13 +61,13 @@ export default function ScholarshipCard({ scholarship }) {
               className="inline-block mr-4 bg-gray-900 hover:scale-105 duration-150 text-gray-100 px-4 py-1.5 rounded-xl text-sm font-bold shadow-2xl hover:opacity-95"
             >
               Dodaj u kalendar
-          </button>
-          <button
-              onClick={() => {}}
+            </button>
+            <button
+              onClick={() => onReminderClick && onReminderClick(id)}
               className="inline-block bg-gray-900 hover:scale-105 duration-150 text-gray-100 px-4 py-1.5 rounded-xl text-sm font-bold shadow-2xl hover:opacity-95"
             >
-              Potsjeti me
-          </button>
+              Podsjeti me
+            </button>
           </div>
         </div>
       </div>
