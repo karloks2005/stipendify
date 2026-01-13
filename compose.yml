@@ -12,7 +12,7 @@ services:
     build: backend/
     env_file: "backend/.env"
     environment:
-      FRONTEND_URL=http://localhost:7887
+      - FRONTEND_URL=http://localhost:7887
     volumes:
       - ./scraping:/app/scraping
     ports:
