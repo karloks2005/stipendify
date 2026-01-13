@@ -16,7 +16,7 @@ import sys
 from sqlalchemy import select
 
 from modules.email_reminders import router as email_reminders_router
-
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://stipendify.tk0.eu')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(CORSMiddleware, allow_origins=[
-    "http://localhost:3000", "http://localhost:8888","https://stipendify.tk0.eu"], allow_methods=["GET", "POST"], allow_headers=["authorization"], allow_credentials=True)
+    "http://localhost:3000", "http://localhost:7887", "http://localhost:8887", "https://stipendify.tk0.eu"], allow_methods=["GET", "POST"], allow_headers=["authorization"], allow_credentials=True)
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
@@ -66,7 +66,7 @@ app.include_router(
         auth_backend,
         SECRET,
         associate_by_email=True,
-        redirect_url="https://stipendify.tk0.eu/callback"),
+        redirect_url=f"{FRONTEND_URL}/callback"),
     prefix="/auth/google",
     tags=["auth"],
 )

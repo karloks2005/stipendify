@@ -11,10 +11,12 @@ services:
   backend:
     build: backend/
     env_file: "backend/.env"
+    environment:
+      FRONTEND_URL=http://localhost:7887
     volumes:
       - ./scraping:/app/scraping
     ports:
-      - 8888:5000
+      - 7888:5000
     depends_on:
       - database
     networks:
@@ -22,12 +24,13 @@ services:
       - db-network
     restart: unless-stopped
   frontend:
-    build: frontend/app
+    build: 
+      context: ./frontend/app
+      args:
+        REACT_APP_BACKEND_URL: http://localhost:7888
     ports:
-      - 8887:80
+      - 7887:80
     restart: unless-stopped
-    environment:
-      - REACT_APP_BACKEND_URL=localhost:8888
   
 
 networks: 
