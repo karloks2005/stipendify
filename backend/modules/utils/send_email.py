@@ -27,13 +27,14 @@ curl -s \
 """
 
 import requests as r
-import os
+import os, sys
 auth = r.auth.HTTPBasicAuth(os.getenv("MAILJET_API_KEY"), os.getenv("MAILJET_SECRET_KEY"))
 EMAIL_ENABLED = auth.username is not None and auth.password is not None
 SENDER_EMAIL = "no-reply@stipendify.tk0.eu"
 SENDER_NAME = "Stipendify"
 def send_email(to, subject, text=None, html=None):
     if not EMAIL_ENABLED:
+        print(f"EMAIL: {to = }, {subject = }, {text = }", file=sys.stderr)
         return None
     d = {"Messages": [
         {"From": 
