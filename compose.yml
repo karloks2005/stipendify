@@ -26,6 +26,8 @@ services:
     ports:
       - 8887:80
     restart: unless-stopped
+    environment:
+      - REACT_APP_BACKEND_URL=localhost:8888
   
 
 networks: 

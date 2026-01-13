@@ -50,4 +50,4 @@ def send_email(to, subject, text=None, html=None):
     return req.json()
 
 if __name__ == "__main__":
-    print(send_email("toni@kukec.dev", "Hello from Stipendify", text=":3"))
+    print(send_email("karloks2005@gmail.com", "Hello from Stipendify", text=":3"))

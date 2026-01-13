@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
     if (token) headers["Authorization"] = `Bearer ${token}`;
 
     try {
-      const response = await fetch("https://stipendify-backend.tk0.eu/users/me", {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/users/me`, {
         method: "GET",
         credentials: "include",
         headers,
@@ -89,7 +89,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const headers = {};
         if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
-        const res = await fetch("https://stipendify-backend.tk0.eu/auth/jwt/logout", {
+        const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/jwt/logout`, {
           method: "POST",
           credentials: "include",
           headers: headers
