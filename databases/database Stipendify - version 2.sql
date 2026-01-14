@@ -94,13 +94,13 @@ CREATE TABLE scholarship (
 CREATE TABLE mail_reminder (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    user_id UUID UNIQUE NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
 
-    scholarship_title TEXT UNIQUE NOT NULL,   
-    remind_date DATE UNIQUE NOT NULL,         
-    remind_time TIME UNIQUE NOT NULL,         
-
+    scholarship_title TEXT NOT NULL,   
+    remind_date DATE NOT NULL,         
+    remind_time TIME NOT NULL,   
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (user_id, scholarship_title, remind_date, remind_time)  
 );
 
 

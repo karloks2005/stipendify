@@ -1,3 +1,4 @@
+-- PostgreSQL
 
 CREATE TABLE organisation (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -91,16 +92,18 @@ CREATE TABLE scholarship (
     CONSTRAINT ck_scholarship_year_of_study
         CHECK (min_year_of_study IN (0,1,2,3,4,5))
 );
-CREATE TABLE mail_reminder (
+CREATE TABLE email_reminder (
+
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    email VARCHAR(320) NOT NULL,
+    is_sent BOOLEAN NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    remind_at TIMESTAMP NOT NULL,
+    scholarship_id UUID NOT NULL,
 
-    user_id UUID UNIQUE NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-
-    scholarship_title TEXT UNIQUE NOT NULL,   
-    remind_date DATE UNIQUE NOT NULL,         
-    remind_time TIME UNIQUE NOT NULL,         
-
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_email_reminder_user
+        FOREIGN KEY (user_id) REFERENCES "user"(id) ON DELETE CASCADE,
+    CONSTRAINT fk_email_reminder_scholarship
+        FOREIGN KEY (scholarship_id) REFERENCES "scholarship"(id) ON DELETE CASCADE
 );
-
-

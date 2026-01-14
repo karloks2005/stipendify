@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import List
+from sqlalchemy import DateTime
 
 from fastapi_users.db import (
     SQLAlchemyBaseOAuthAccountTableUUID,
@@ -66,6 +67,7 @@ class User(SQLAlchemyBaseUserTableUUID, Base):
         uselist=False,
         cascade="all, delete-orphan",
     )
+    email_reminders = relationship("EmailReminder", back_populates="user")
 
 
 class Organisation(Base):
@@ -75,7 +77,7 @@ class Organisation(Base):
                 server_default=text("gen_random_uuid()"))
     name = Column(Text, nullable=False)
     oib = Column(String(11), unique=True, nullable=False)
-    address = Column(Text, nullable=False)
+    address = Column(Text, nullable=True)
 
     user = relationship("User", back_populates="organisation")
 
@@ -84,6 +86,14 @@ class Organisation(Base):
         back_populates="organisation",
         cascade="all, delete-orphan",
     )
+
+    def __eq__(self, other):
+        if self.__class__ != other.__class__:
+            return False
+        return hash(self) == hash(other)
+
+    def __hash__(self):
+        return hash((self.name, self.oib, self.address))
 
 
 class UserForm(Base):
@@ -146,6 +156,7 @@ class Scholarship(Base):
     )
     name = Column(Text, nullable=False)
     value = Column(Integer, nullable=True)
+    visible = Column(Boolean, nullable=False, default=False)
     url = Column(Text, nullable=False)
     organisation_work = Column(
         Boolean, nullable=False, server_default=text("FALSE"))
@@ -156,6 +167,7 @@ class Scholarship(Base):
     length_of_scholarship = Column(INTERVAL, nullable=True)
     length_of_work = Column(INTERVAL, nullable=True)
     important_dates = Column(JSONB, nullable=True)
+    description = Column(Text, nullable=True)
 
     organisation_id = Column(
         UUID(as_uuid=True),
@@ -187,5 +199,30 @@ class Scholarship(Base):
             name="ck_scholarship_year_of_study",
         ),
     )
-
+    email_reminders = relationship("EmailReminder", back_populates="scholarship")
     organisation = relationship("Organisation", back_populates="scholarships")
+class EmailReminder(Base):
+    __tablename__= "email_reminder"
+    id = Column( 
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("gen_random_uuid()"),
+    )
+    user_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("user.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    user = relationship("User", back_populates="email_reminders")
+    
+    is_sent = Column(Boolean, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    remind_at = Column(DateTime, nullable=False)
+    scholarship_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("scholarship.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    scholarship = relationship("Scholarship", back_populates="email_reminders")

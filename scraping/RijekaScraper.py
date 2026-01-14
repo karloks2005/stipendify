@@ -85,9 +85,12 @@ class RijekaScraper:
         return {
             "title": self.get_title(),
             "url": self.url,
+            "details": self.get_details(),
             "categories": self.get_categories(),
             "uvjeti": self.get_lists(),
-            "trajanje": self.get_durations()
+            "trajanje": self.get_durations(),
+            "iznos": 0,
+            "org": "Grad Rijeka"
         }
 
     def get_matching_iznos_text(self):
@@ -146,16 +149,8 @@ def scrape():
             out.append(RijekaScraper(l).get_all())
         except Exception as e:
             print(f"Loading {l} failed, skipping\n{e}", file=sys.stderr)
+    return out
 
 
 if __name__ == "__main__":
-    url = "https://www.rijeka.hr/teme-za-gradane/odgoj-i-obrazovanje/stipendije/"
-    getter = RijekaUrlGetter(url)
-    links = getter.get_links()
-    print(getter)
-
-    if links:
-        for i, link in enumerate(links, start=1):
-            print(f"\n=== Stipendija {i} ===")
-            scraper = RijekaScraper(link)
-            print(scraper)
+    print(scrape())

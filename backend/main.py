@@ -1,37 +1,43 @@
-from modules.scholarships import router as scholarships_router
 import uvicorn
 import asyncio
+import sys
+import os
 from contextlib import asynccontextmanager, suppress
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from modules.db import create_db_and_tables, async_session_maker, engine
-from modules.models import User, Scholarship
+from modules.db import create_db_and_tables
+from modules.models import User
 from modules.schemas import UserCreate, UserRead, UserUpdate
 from modules.users import auth_backend, current_active_user, fastapi_users, google_oauth_client, auth_backend
-import os
-from modules.scrapers import scrape_scholarships
-import sys
-from sqlalchemy import select
+from modules.utils.background_workers import load_scholarships_loop, send_emails_loop
 
+from modules.email_reminders import router as email_reminders_router
+from modules.scholarships import router as scholarships_router
+from modules.organisations import router as orgs_router
+
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://stipendify.tk0.eu')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await create_db_and_tables()
-    task = asyncio.create_task(load_scholarships_loop())
-    app.state.scholarship_task = task
+    scrape_task = asyncio.create_task(load_scholarships_loop())
+    email_task = asyncio.create_task(send_emails_loop())
+    app.state.scrape_task = scrape_task
+    app.state.email_task = email_task
 
     yield
 
-    task.cancel()
+    email_task.cancel()
+    scrape_task.cancel()
     with suppress(asyncio.CancelledError):
-        await task
+        await asyncio.gather(email_task, scrape_task)
 
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(CORSMiddleware, allow_origins=[
-    "http://localhost:3000"], allow_methods=["GET", "POST"], allow_headers=["authorization"], allow_credentials=True)
+    "http://localhost:3000", "http://localhost:7887", "http://localhost:8887", "https://stipendify.tk0.eu"], allow_methods=["GET", "POST"], allow_headers=["authorization"], allow_credentials=True)
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
@@ -60,12 +66,18 @@ app.include_router(
 SECRET = os.getenv("AUTH_KEY")
 app.include_router(
     fastapi_users.get_oauth_router(
-        google_oauth_client, auth_backend, SECRET, associate_by_email=True, redirect_url="http://localhost:3000/callback"),
+        google_oauth_client,
+        auth_backend,
+        SECRET,
+        associate_by_email=True,
+        redirect_url=f"{FRONTEND_URL}/callback"),
     prefix="/auth/google",
     tags=["auth"],
 )
 
 app.include_router(scholarships_router)
+app.include_router(email_reminders_router)
+app.include_router(orgs_router)
 
 
 @app.get("/authenticated-route")
@@ -73,32 +85,6 @@ async def authenticated_route(user: User = Depends(current_active_user)):
     return {"message": f"Hi {user.email}!"}
 
 
-async def load_scholarships_async():
-    print("Loading new scholarships!!", file=sys.stderr)
-    data = scrape_scholarships()
-    urls = [s.url for s in data]
-
-    async with async_session_maker() as session:
-        existing = await session.execute(
-            select(Scholarship.url).where(Scholarship.url.in_(urls)))
-        existing = set(existing.scalars().all())
-        new = [x for x in data if x.url not in existing]
-        print(f"Adding {len(new)} NEW scholarships", file=sys.stderr)
-        print(new, file=sys.stderr)
-        session.add_all(new)
-        print("added", file=sys.stderr)
-        try:
-            await session.commit()
-            print("commited", file=sys.stderr)
-        except Exception as e:
-            print("failed", file=sys.stderr)
-            print(e, file=sys.stderr)
-
-
-async def load_scholarships_loop():
-    while True:
-        await load_scholarships_async()
-        await asyncio.sleep(8*60*60)
-
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=5000)
+    uvicorn.run("main:app", host="0.0.0.0", port=5000,
+                forwarded_allow_ips=["stipendify_backend_1", "10.89.1.2", "10.89.0.3", "10.89.17.3"])

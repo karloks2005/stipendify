@@ -43,7 +43,7 @@ function LoginAndRegisterPage() {
     payload.append("password", loginData.password);
 
     try {
-      const response = await fetch("http://localhost:8888/auth/jwt/login", {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/jwt/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -88,7 +88,7 @@ function LoginAndRegisterPage() {
     // or similar. If that fails we fall back to navigating directly to the oauth route.
     (async () => {
       try {
-        const resp = await fetch('http://localhost:8888/auth/google/authorize', {
+        const resp = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/google/authorize`, {
           method: 'GET',
           credentials: 'include',
           headers: { Accept: 'application/json' },
@@ -118,21 +118,63 @@ function LoginAndRegisterPage() {
     })();
   };
 
-  const handleRegSubmit = (e) => {
-    e.preventDefault()
-    let payload = {
-      "email": regData.email,
-      "password": regData.password,
-      "first_name": regData.firstName,
-      "last_name": regData.lastName,
-    }
-    fetch("http://localhost:8888/auth/register", {
+  const handleRegSubmit = async (e) => {
+  e.preventDefault();
+  
+  const payload = {
+    "email": regData.email,
+    "password": regData.password,
+    "first_name": regData.firstName,
+    "last_name": regData.lastName,
+    "is_active": true,
+    "is_superuser": false,
+    "is_verified": false
+  };
+
+  try {
+    // 1. Prvo izvrši registraciju
+    const regResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/register`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
+
+    if (!regResponse.ok) {
+      const errorData = await regResponse.json();
+      console.error("Registracija nije uspjela:", errorData);
+      return;
+    }
+
+    console.log("Registracija uspješna, pokrećem login...");
+
+    // 2. Automatski pokreni login proces
+    // Koristimo URLSearchParams jer tvoj backend (FastAPI/Djoser) vjerojatno očekuje OAuth2 format
+    const loginPayload = new URLSearchParams();
+    loginPayload.append("username", regData.email);
+    loginPayload.append("password", regData.password);
+
+    const loginResponse = await fetch(`${process.env.REACT_APP_BACKEND_URL}/auth/jwt/login`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: loginPayload.toString(),
+    });
+
+    if (loginResponse.ok) {
+      const data = await loginResponse.json();
+      
+      // 3. Ažuriraj auth context i navigiraj
+      await login(data);
+      navigate("/stipendije", { replace: true });
+    } else {
+      // Ako login ne uspije, prebaci ga na login ekran da pokuša ručno
+      setMode('login');
+    }
+  } catch (err) {
+    console.error("Greška tijekom procesa registracije/prijave:", err);
   }
+};
 
   // login view
   if (mode === 'login') {

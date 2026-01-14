@@ -1,54 +1,37 @@
-import requests
 import sys
+import requests
 from bs4 import BeautifulSoup
 import re
-
 if __name__ == "__main__":
     from SibenikUrlGetter import SibenikUrlGetter
 else:
     from scraping.SibenikUrlGetter import SibenikUrlGetter
-
 from pypdf import PdfReader
 import io
-import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class SibenikScraper:
-    session = requests.Session()  # koristi zajedničku sesiju za brže HTTP pozive
-
     def __init__(self, url):
         self.url = url
         self.soup = self.get_soup()
 
     def get_soup(self):
-        try:
-            response = self.session.get(self.url, timeout=10)
-            response.encoding = "utf-8"
-            return BeautifulSoup(response.text, 'html.parser')
-        except Exception as e:
-            print(f"[Greška] Ne mogu dohvatiti {self.url}: {e}")
-            return BeautifulSoup("", "html.parser")
-
-    def clean_text(self, text):
-        """Uklanja višestruke razmake i slovo 'h' nakon vremena"""
-        text = re.sub(r"\s+", " ", text.strip())
-        text = re.sub(r"\s*h$", "", text)
-        text = re.sub(r",\s*(\d{1,2}:\d{2})\s*h", r", \1", text)
-        return text.strip()
+        response = requests.get(self.url)
+        response.encoding = "utf-8"
+        return BeautifulSoup(response.text, 'html.parser')
 
     def get_title(self):
         title = self.soup.find('h3', class_='font-weight-bold text-uppercase')
         if title:
-            return self.clean_text(title.get_text())
+            return title.get_text(strip=True)
 
         title = self.soup.find('h5', class_='font-weight-bold')
         if title:
-            return self.clean_text(title.get_text())
+            return title.get_text(strip=True)
 
         meta_title = self.soup.find('meta', property='og:title')
         if meta_title:
-            return self.clean_text(meta_title.get('content', ''))
+            return meta_title.get('content', '').strip()
 
         return None
 
@@ -57,10 +40,10 @@ class SibenikScraper:
         if status_div:
             status_text = status_div.find('span', class_='red-text')
             if status_text:
-                return self.clean_text(status_text.get_text())
+                return status_text.get_text(strip=True)
             status_text = status_div.find('span', class_='green-text')
             if status_text:
-                return self.clean_text(status_text.get_text())
+                return status_text.get_text(strip=True)
         return None
 
     def get_date_range(self):
@@ -70,7 +53,8 @@ class SibenikScraper:
         if date_objave and 'Datum objave' in date_objave.get_text():
             date_text = date_objave.find('b')
             if date_text:
-                dates['datum_objave'] = self.clean_text(date_text.get_text())
+                dates['datum_objave'] = date_text.get_text(
+                    strip=True).replace("h", "").strip()
 
         date_isteka = self.soup.find_all(
             'div', class_='card-body border-bottom')
@@ -78,10 +62,10 @@ class SibenikScraper:
             if 'Datum isteka' in div.get_text():
                 date_text = div.find('b')
                 if date_text:
-                    dates['datum_isteka'] = self.clean_text(
-                        date_text.get_text())
+                    dates['datum_isteka'] = date_text.get_text(
+                        strip=True).replace("h", "").strip()
 
-        text = self.soup.get_text()
+        text = self.soup.get_text().replace("h", "")
         date_pattern = r"od\s+(\d{1,2}\.\d{1,2}\.\d{4}).*?do\s+(\d{1,2}\.\d{1,2}\.\d{4})"
         match = re.search(date_pattern, text, re.IGNORECASE)
         if match:
@@ -97,7 +81,7 @@ class SibenikScraper:
         for div in details_divs:
             paragraphs = div.find_all('p')
             for p in paragraphs:
-                text = self.clean_text(p.get_text())
+                text = p.get_text(strip=True)
                 if text and len(text) > 20:
                     all_text.append(text)
 
@@ -105,6 +89,7 @@ class SibenikScraper:
 
     def get_pdf_links(self):
         pdf_links = []
+
         for link in self.soup.find_all('a', href=True):
             href = link['href']
             link_text = link.get_text(strip=True).lower()
@@ -128,21 +113,20 @@ class SibenikScraper:
         return pdf_links
 
     def extract_text_from_pdf(self, pdf_url):
-        """Brzo dohvaćanje PDF-a (max 2 stranice, timeout 10s)"""
         try:
-            response = self.session.get(pdf_url, timeout=10)
+            response = requests.get(pdf_url, timeout=30)
             response.raise_for_status()
+
             pdf_file = io.BytesIO(response.content)
             pdf_reader = PdfReader(pdf_file)
+
             text = ""
-            # čitaj max 2 stranice
-            for i, page in enumerate(pdf_reader.pages[:2]):
-                page_text = page.extract_text()
-                if page_text:
-                    text += page_text
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+
             return text
         except Exception as e:
-            print(f"[Upozorenje] PDF preskočen {pdf_url}: {e}")
+            print(f"Greška pri čitanju PDF-a {pdf_url}: {e}")
             return ""
 
     def get_amounts_from_pdf(self):
@@ -165,7 +149,7 @@ class SibenikScraper:
                         normalized = match.replace(',', '.')
                         try:
                             amount = float(normalized)
-                            if 80 <= amount <= 600:
+                            if amount not in all_amounts and 80 <= amount <= 600:
                                 all_amounts.append(amount)
                         except ValueError:
                             continue
@@ -178,6 +162,7 @@ class SibenikScraper:
             return [f"{int(amt)}" if amt == int(amt) else f"{amt:.2f}" for amt in pdf_amounts]
 
         details = self.get_details()
+
         amount_patterns = [
             r"(?:stipendij[ae]|iznos).*?(\d{2,3}[.,]\d{2})\s*(?:EUR|eura|€)",
             r"(?:stipendij[ae]|iznos).*?(\d{2,3})\s*(?:EUR|eura|€)",
@@ -197,10 +182,7 @@ class SibenikScraper:
                 except ValueError:
                     continue
 
-        if all_amounts:
-            return [f"{int(amt)}" if amt == int(amt) else f"{amt:.2f}" for amt in sorted(all_amounts)]
-
-        return None
+        return [int(amt) for amt in all_amounts]
 
     def get_categories(self):
         text = (self.get_title() + " " + self.get_details()).lower()
@@ -213,15 +195,37 @@ class SibenikScraper:
             categories.append("sportaši")
         return categories if categories else ["studenti"]
 
+    def get_short_details(self):
+        cats = self.get_categories()
+        dates = self.get_date_range()
+
+        padezi = {
+            "studenti": "studente",
+            "učenici": "učenike",
+            "sportaši": "sportaše"
+        }
+
+        cats_acc = [padezi.get(cat, cat) for cat in cats]
+        category_text = f"Stipendija za {', '.join(cats_acc)}."
+
+        if dates:
+            if "datum_isteka" in dates:
+                return f"{category_text} Prijave do: {dates['datum_isteka']}."
+            if "do" in dates:
+                return f"{category_text} Prijave do: {dates['do']}."
+
+        return category_text
+
     def get_all(self):
         return {
             "title": self.get_title(),
-            "url": self.url,
             "status": self.get_status(),
             "date_range": self.get_date_range(),
-            "details": self.get_details(),
+            "details": self.get_short_details(),
             "categories": self.get_categories(),
-            "iznosi": self.get_amounts()
+            "url": self.url,
+            "iznos": max(self.get_amounts()+[0]),
+            "org": "Grad Šibenik"
         }
 
     def __str__(self):
@@ -249,6 +253,8 @@ class SibenikScraper:
         else:
             text += f"Iznosi: Nedostupno\n"
 
+        text += f"Detalji: {self.get_short_details()}\n"
+
         return text
 
 
@@ -263,32 +269,17 @@ def scrape():
     return out
 
 
-# =======================
-# GLAVNI PROGRAM (optimiziran)
-# =======================
 if __name__ == "__main__":
     print(scrape())
-    """
     url = "https://gov.sibenik.hr/stranice/stipendije/135.html"
     getter = SibenikUrlGetter(url)
     print(getter)
 
     links = getter.get_links()
     if links:
-
-        # paralelno dohvaćanje više stranica (do 5 istovremeno)
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            futures = {executor.submit(
-                SibenikScraper, link): link for link in links}
-            for i, future in enumerate(as_completed(futures), start=1):
-                link = futures[future]
-                try:
-                    scraper = future.result()
-                    print(f"\n=== Stipendija {i} ===")
-                    print(scraper)
-                except Exception as e:
-                    print(f"[Greška] Ne mogu obraditi {link}: {e}")
-                time.sleep(0.3)  # mala pauza da ne zatrpaš server
+        for i, link in enumerate(links, start=1):
+            print(f"\n=== Stipendija {i} ===")
+            scraper = SibenikScraper(link)
+            print(scraper)
     else:
         print("\nNisu pronađeni linkovi za stipendije.")
-    """

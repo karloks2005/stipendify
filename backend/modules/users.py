@@ -70,3 +70,36 @@ async def current_admin_user(user: User = Depends(current_active_user)) -> User:
             detail="Admins only",
         )
     return user
+
+async def current_org_user(user: User = Depends(current_active_user)) -> User:
+    if user.role != "organisation":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Orgs only",
+        )
+    return user
+
+import contextlib
+
+from modules.db import get_user_db
+from modules.schemas import UserCreate
+from fastapi_users.exceptions import UserAlreadyExists
+
+get_user_db_context = contextlib.asynccontextmanager(get_user_db)
+get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
+
+
+async def create_user(session, email: str, password: str, is_superuser: bool = False):
+    try:
+        async with get_user_db_context(session) as user_db:
+            async with get_user_manager_context(user_db) as user_manager:
+                user = await user_manager.create(
+                    UserCreate(
+                        email=email, password=password
+                    )
+                )
+                print(f"User created {user}")
+                return user
+    except UserAlreadyExists:
+        print(f"User {email} already exists")
+        raise

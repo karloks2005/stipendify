@@ -10,8 +10,25 @@ Stipendify je web platforma za pretragu državnih I privatnih stipendija. Pronal
 
 
 # Tehnologije
+## Frontend
+### React
+Razvojni okriv za izradu web aplikacija.
 
-# Instalacija
+### TailwindCSS
+CSS paket koji omogućuje jednostavno stiliziranje web stranica dodavanjem klasa iz paketa.
+
+## Backend
+### FastAPI
+Razvojni okvir za izradu API sučelja.
+
+### BeautifulSoup
+Razvojni paket za izvlačenje podataka iz HTML i XML datoteka.
+
+### SQLAlchemy
+Razvojni paket za interakciju Python programa i relacijskih baza podataka pomoću ORM modela.
+
+# Pristup
+https://stipendify.tk0.eu/
 
 # Članovi tima 
 [Petar Gavrić](https://github.com/Petar-Gavric) <br>

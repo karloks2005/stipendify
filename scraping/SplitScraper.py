@@ -157,8 +157,7 @@ class SplitScraper:
         details = self.get_details()
         amount_pattern = r"(\d{2,3}(?:[.,]\d{2})?)\s*(?:eura|€|EUR)"
         amounts = re.findall(amount_pattern, details, flags=re.IGNORECASE)
-
-        return amounts if amounts else None
+        return [int(a) for a in amounts]
 
     def get_durations(self):
         details = self.get_details()
@@ -173,8 +172,9 @@ class SplitScraper:
             "date": self.get_date(),
             "details": self.get_details(),
             "categories": self.get_categories(),
-            "iznosi": self.get_amounts(),
-            "trajanje": self.get_durations()
+            "iznosi": max(self.get_amounts() + [0]),
+            "trajanje": self.get_durations(),
+            "org": "Grad Split"
         }
 
     def __str__(self):
@@ -201,6 +201,7 @@ class SplitScraper:
 
 
 def scrape():
+    return []
     url = "https://split.hr/natjecaji-i-oglasi/pid/5936/searchid/5937/cfs/true/edncfddlnc_55/1222"
     out = []
     for l in SplitUrlGetter(url).get_links():
