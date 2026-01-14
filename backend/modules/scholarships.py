@@ -6,7 +6,7 @@ from sqlalchemy import select
 from modules.db import get_async_session
 from modules.models import Scholarship, User
 from modules.schemas import ScholarshipCreate, ScholarshipRead, ScholarshipUpdate
-from modules.users import current_admin_user
+from modules.users import current_org_user
 
 router = APIRouter(prefix="/scholarships", tags=["scholarships"])
 
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/scholarships", tags=["scholarships"])
 async def list_scholarships(
     session: AsyncSession = Depends(get_async_session),
 ):
-    result = await session.execute(select(Scholarship))
+    result = await session.execute(select(Scholarship).where(Scholarship.visible))
     scholarships = result.scalars().all()
     return scholarships
 
@@ -38,9 +38,9 @@ async def get_scholarship(
 async def create_scholarship(
     data: ScholarshipCreate,
     session: AsyncSession = Depends(get_async_session),
-    admin: User = Depends(current_admin_user),
+    org: User = Depends(current_org_user),
 ):
-    scholarship = Scholarship(**data.model_dump())
+    scholarship = Scholarship(organisation_id = org.organisation_id, **data.model_dump())
     session.add(scholarship)
     await session.commit()
     await session.refresh(scholarship)
@@ -52,7 +52,7 @@ async def update_scholarship(
     scholarship_id: uuid.UUID,
     data: ScholarshipUpdate,
     session: AsyncSession = Depends(get_async_session),
-    admin: User = Depends(current_admin_user),
+    org: User = Depends(current_org_user),
 ):
     scholarship = await session.get(Scholarship, scholarship_id)
     if not scholarship:
@@ -70,7 +70,7 @@ async def update_scholarship(
 async def delete_scholarship(
     scholarship_id: uuid.UUID,
     session: AsyncSession = Depends(get_async_session),
-    admin: User = Depends(current_admin_user),
+    user: User = Depends(current_org_user),
 ):
     scholarship = await session.get(Scholarship, scholarship_id)
     if not scholarship:

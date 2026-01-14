@@ -1,4 +1,3 @@
-# backend/modules/email_reminders.py
 from datetime import datetime
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -23,7 +22,6 @@ async def create_email_reminder(
     reminder = EmailReminder(
         user_id=user.id, 
         scholarship_id=payload.scholarship_id,
-        email=payload.email,
         remind_at=to_utc_naive(payload.remind_at),
         created_at=datetime.utcnow(),
         is_sent=False,

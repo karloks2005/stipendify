@@ -77,7 +77,7 @@ class Organisation(Base):
                 server_default=text("gen_random_uuid()"))
     name = Column(Text, nullable=False)
     oib = Column(String(11), unique=True, nullable=False)
-    address = Column(Text, nullable=False)
+    address = Column(Text, nullable=True)
 
     user = relationship("User", back_populates="organisation")
 
@@ -156,6 +156,7 @@ class Scholarship(Base):
     )
     name = Column(Text, nullable=False)
     value = Column(Integer, nullable=True)
+    visible = Column(Boolean, nullable=False, default=False)
     url = Column(Text, nullable=False)
     organisation_work = Column(
         Boolean, nullable=False, server_default=text("FALSE"))
@@ -215,7 +216,6 @@ class EmailReminder(Base):
 
     user = relationship("User", back_populates="email_reminders")
     
-    email = Column(String(320), nullable=False)
     is_sent = Column(Boolean, nullable=False)
     created_at = Column(DateTime, nullable=False)
     remind_at = Column(DateTime, nullable=False)
