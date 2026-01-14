@@ -113,6 +113,11 @@ function HomePage() {
   const handleReminderClick = (scholarshipId) => setSelectedScholarshipId(scholarshipId)
   const handleReminderClose = () => setSelectedScholarshipId(null)
 
+  // Lokalno uklanjanje podsjetnika iz state-a bez mrežnog poziva
+  const handleDeleteReminder = (reminderId) => {
+    setReminders((prev) => prev.filter((r) => r.id !== reminderId))
+  }
+
   if (loading) return <div className="flex h-screen items-center justify-center font-bold text-gray-400">Učitavanje...</div>
   if (error) return <div className="flex h-screen items-center justify-center p-6 text-red-500">{error}</div>
 
@@ -158,8 +163,8 @@ function HomePage() {
                         📅 {new Date(rem.remind_at).toLocaleDateString('hr-HR')}
                       </p>
                       
-                      <button 
-                        // Pretpostavka funkcije za brisanje
+                      <button
+                        onClick={() => handleDeleteReminder(rem.id)}
                         className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all lg:opacity-0 lg:group-hover:opacity-100"
                         title="Obriši podsjetnik"
                       >

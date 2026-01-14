@@ -32,10 +32,23 @@ function ReminderForm({ scholarshipId, onClose, onCreated }) {
 
     console.log('Spremamo podsjetnik:', { scholarshipId, ...formData, selectedDate })
     
+    // Build a local Date from selectedDate + reminderTime to avoid UTC date shift
+    const [hours, minutes] = formData.reminderTime.split(':')
+    const localDt = new Date(
+      selectedDate.getFullYear(),
+      selectedDate.getMonth(),
+      selectedDate.getDate(),
+      Number(hours || 0),
+      Number(minutes || 0),
+      0,
+      0,
+    )
+
     let payload = {
-        "scholarship_id": scholarshipId,
-        "email": user.email,
-        "remind_at": `${selectedDate.toISOString().split('T')[0]}T${formData.reminderTime}:00.000Z`,
+      "scholarship_id": scholarshipId,
+      "email": user.email,
+      // send full ISO string (UTC) representing the selected local datetime
+      "remind_at": localDt.toISOString(),
     }
     let response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/email-reminders`, {
       method: "POST",
