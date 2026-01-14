@@ -36,6 +36,7 @@ export const AuthProvider = ({ children }) => {
   // Fake login/logout logic for demo
   const login = (response) => {
     // support different token shapes from backend
+    console.log(user);
     const token = response?.accessToken || response?.access_token || null;
     if (token) {
       setAccessToken(token);

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function ScholarshipCard({ scholarship }) {
+export default function ScholarshipCard({ scholarship, onReminderClick }) {
   const {
     name,
     value,
@@ -32,7 +32,9 @@ export default function ScholarshipCard({ scholarship }) {
             Grad Šibenik
           </div>
           <div className="text-sm text-gray-600 bg-gray-300 p-2 font-semibold rounded-md">
-            {value + "€"}
+            {
+              value ? `${value}€` : 'N/A'
+            }
           </div>
         </div>
         {/* Description container: constrained when collapsed so only text scroll/clip is applied here */}
@@ -66,14 +68,8 @@ export default function ScholarshipCard({ scholarship }) {
         <div className="flex items-center justify-between text-sm text-gray-600">
           <div>Krajnji rok: <span className="font-medium text-gray-800">{"14.11.2025"}</span></div>
           <div>
-            <button
-              onClick={() => {}}
-              className="inline-block mr-4 bg-gray-900 hover:scale-105 duration-150 text-gray-100 px-4 py-1.5 rounded-xl text-sm font-bold shadow-2xl hover:opacity-95"
-            >
-              Dodaj u kalendar
-          </button>
           <button
-              onClick={() => {}}
+              onClick={() => onReminderClick && onReminderClick(id)}
               className="inline-block bg-gray-900 hover:scale-105 duration-150 text-gray-100 px-4 py-1.5 rounded-xl text-sm font-bold shadow-2xl hover:opacity-95"
             >
               Podsjeti me
