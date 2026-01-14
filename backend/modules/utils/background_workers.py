@@ -2,7 +2,7 @@ from sqlalchemy import select
 from modules.models import User, Scholarship, Organisation, EmailReminder
 from modules.scrapers import scrape_scholarships
 from modules.utils.send_email import send_email
-import sys
+import sys, asyncio
 from datetime import datetime
 from sqlalchemy.orm import joinedload
 from modules.db import async_session_maker
