@@ -18,6 +18,7 @@ function HomePage() {
   
   const [selectedScholarshipId, setSelectedScholarshipId] = useState(null)
   const [dashboardDate, setDashboardDate] = useState(new Date())
+  const [showPostForm, setShowPostForm] = useState(false)
 
   // Placeholder reminders
   const [reminders, setReminders] = useState([])
@@ -97,6 +98,18 @@ function HomePage() {
     console.log(user)
   }, [initializing, accessToken, navigate])
 
+  const isOrganization = Boolean(user && user.organisation_id != null)
+
+  // Placeholder for organization's own scholarships (replace with API fetch later)
+  const orgScholarships = isOrganization ? [
+    {
+      id: 'org-placeholder-1',
+      title: `Moja stipendija - ${user?.first_name || user?.email || 'Organizacija'}`,
+      description: 'Ovo je placeholder stipendija koju je kreirala ova organizacija.',
+      owner: user?.id || null,
+    }
+  ] : []
+
   const handleReminderClick = (scholarshipId) => setSelectedScholarshipId(scholarshipId)
   const handleReminderClose = () => setSelectedScholarshipId(null)
 
@@ -114,9 +127,14 @@ function HomePage() {
               {user?.first_name ? `Bok, ${user.first_name}!` : 'Dobrodošli nazad!'}
             </p>
           </div>
-          <button onClick={() => { logout(); navigate('/'); }} className="px-5 py-2.5 text-white font-bold bg-blue-400 rounded-xl shadow-md hover:bg-blue-500 transition-all active:scale-95">
-            Logout
-          </button>
+          <div className="flex items-center gap-3">
+            {isOrganization && (
+              <button onClick={() => setShowPostForm(true)} className="px-5 py-2.5 text-white font-bold bg-blue-400 rounded-xl shadow-md hover:bg-blue-500 transition-all active:scale-95">Kreiraj stipendiju</button>
+            )}
+            <button onClick={() => { logout(); navigate('/'); }} className="px-5 py-2.5 text-white font-bold bg-black rounded-xl shadow-md hover:bg-gray-800 transition-all active:scale-95">
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
@@ -168,10 +186,26 @@ function HomePage() {
 
           {/* MAIN CONTENT: Stipendije zadnje na mobitelu (order-2) */}
           <section className="order-2 lg:order-1 lg:col-span-2 lg:overflow-y-auto pr-2 custom-scrollbar space-y-6 pb-20">
-            <h3 className="font-bold text-gray-900 text-xl lg:hidden mb-2">Dostupne Stipendije</h3>
-            {scholarships.map((s) => (
-              <ScholarshipCard key={s.id} scholarship={s} onReminderClick={handleReminderClick} />
-            ))}
+            {isOrganization ? (
+              <>
+                <h3 className="font-bold text-gray-900 text-lg">Moje stipendije</h3>
+                {orgScholarships.map((s) => (
+                  <ScholarshipCard key={s.id} scholarship={s} onReminderClick={handleReminderClick} />
+                ))}
+
+                <h3 className="font-bold text-gray-900 text-xl mt-6">Sve stipendije</h3>
+                {scholarships.map((s) => (
+                  <ScholarshipCard key={s.id} scholarship={s} onReminderClick={handleReminderClick} />
+                ))}
+              </>
+            ) : (
+              <>
+                <h3 className="font-bold text-gray-900 text-xl lg:hidden mb-2">Dostupne Stipendije</h3>
+                {scholarships.map((s) => (
+                  <ScholarshipCard key={s.id} scholarship={s} onReminderClick={handleReminderClick} />
+                ))}
+              </>
+            )}
           </section>
 
         </div>
@@ -183,11 +217,21 @@ function HomePage() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
           >
-            <motion.div
+              <motion.div
               initial={{ scale: 0.9, y: 30, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.9, y: 30, opacity: 0 }}
               className="w-full max-w-lg"
             >
-              <ReminderForm scholarshipId={selectedScholarshipId} onClose={handleReminderClose} />
+              <ReminderForm scholarshipId={selectedScholarshipId} onClose={handleReminderClose} onCreated={fetchReminders} />
+            </motion.div>
+          </motion.div>
+        )}
+        {showPostForm && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          >
+            <motion.div initial={{ scale: 0.95, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, y: 20, opacity: 0 }} className="w-full max-w-4xl">
+              <ScholarshipPostForm onClose={() => setShowPostForm(false)} onCreated={async () => { await fetchScholarships(); }} />
             </motion.div>
           </motion.div>
         )}

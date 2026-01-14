@@ -3,7 +3,7 @@ import InputField from './InputField'
 import Calendar from './Calendar'
 import { useAuth } from '../context/AuthContext'
 
-function ReminderForm({ scholarshipId, onClose }) {
+function ReminderForm({ scholarshipId, onClose, onCreated }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -48,9 +48,10 @@ function ReminderForm({ scholarshipId, onClose }) {
     });
 
     if (response.ok) {
-        console.log('Podsjetnik uspješno spremljen')
-        } else {
-        console.error('Greška pri spremanju podsjetnika')
+      console.log('Podsjetnik uspješno spremljen')
+      if (typeof onCreated === 'function') onCreated()
+    } else {
+      console.error('Greška pri spremanju podsjetnika')
     }
     onClose()
   }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const ScholarshipPostForm = ({ onClose }) => {
+const ScholarshipPostForm = ({ onClose, onCreated }) => {
   const [formData, setFormData] = useState({
     naziv: 'Stipendija tvrtke ABC za IT studente',
     iznos: '800',
@@ -24,13 +24,19 @@ const ScholarshipPostForm = ({ onClose }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden font-sans text-gray-800">
+    <div className="bg-white rounded-3xl shadow-2xl p-6 lg:p-8 max-w-lg mx-auto relative border border-gray-100">
+      <button
+        onClick={() => { if (typeof onClose === 'function') onClose() }}
+        className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 transition-colors"
+        aria-label="Zatvori"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
       {/* Header */}
       <div className="px-8 py-6 flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Objava novog natječaja za stipendiju</h2>
-        <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
-          Logo
-        </div>
       </div>
 
       {/* Form Content */}
@@ -138,7 +144,15 @@ const ScholarshipPostForm = ({ onClose }) => {
         {/* Footer Button */}
         <div className="pt-4 flex justify-end">
           <button 
-            onClick={() => console.log(formData)}
+            onClick={async () => {
+              console.log(formData)
+              try {
+                if (typeof onCreated === 'function') await onCreated(formData)
+              } catch (err) {
+                console.error('Error in onCreated callback', err)
+              }
+              if (typeof onClose === 'function') onClose()
+            }}
             className="bg-[#2D3339] text-white px-6 py-2.5 rounded-lg font-bold shadow-md hover:bg-black transition-all active:scale-95"
           >
             Objavi natječaj

@@ -1,7 +1,51 @@
 import Button from './Button'
 import InputField from './InputField'
+import { useNavigate } from 'react-router-dom'
 
 export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToLogin, onGoogle }) {
+  const navigate = useNavigate()
+
+  const registerOrganisation = async (formData) => {
+    // API call to register organisation
+    const payload = {
+      name: formData.orgName,
+      email: formData.email,
+      password: formData.password,
+      oib: formData.oib || null,
+      address: formData.address || null,
+    }
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/org/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (response.ok) {
+        console.log('Organizacija uspješno registrirana')
+        // navigate to /stipendije after successful registration
+        navigate('/stipendije')
+        return
+      } else {
+        console.error('Greška pri registraciji organizacije')
+      }
+    } catch (err) {
+      console.error('Greška pri registraciji organizacije', err)
+    }
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (data && data.role === 'organization') {
+      await registerOrganisation(data)
+      return
+    }
+    if (typeof onSubmit === 'function') onSubmit(e)
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-8">
       {/* lijevi plavi panel */}
@@ -30,7 +74,7 @@ export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToL
           <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white">Logo</div>
         </div>
 
-        <form onSubmit={onSubmit}>
+        <form onSubmit={handleSubmit}>
           {/* role switch */}
           <div className="flex gap-8 mb-6">
             <label className="flex items-start gap-3">
@@ -70,7 +114,11 @@ export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToL
               <InputField label="Prezime" name="lastName" value={data.lastName} onChange={onChange} placeholder="Unesite prezime" />
             </>
           ) : (
-            <InputField label="Naziv organizacije" name="orgName" value={data.orgName} onChange={onChange} placeholder="Unesite naziv organizacije" />
+            <>
+              <InputField label="Naziv organizacije" name="orgName" value={data.orgName} onChange={onChange} placeholder="Unesite naziv organizacije" />
+              <InputField label="OIB" name="oib" value={data.oib || ''} onChange={onChange} placeholder="Unesite OIB" />
+              <InputField label="Adresa" name="address" value={data.address || ''} onChange={onChange} placeholder="Unesite adresu organizacije" />
+            </>
           )}
 
           <InputField label="E-mail" type="email" name="email" value={data.email} onChange={onChange} placeholder="Unesite e-mail" />
