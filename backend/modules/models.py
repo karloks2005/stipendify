@@ -156,7 +156,7 @@ class Scholarship(Base):
     )
     name = Column(Text, nullable=False)
     value = Column(Integer, nullable=True)
-    visible = Column(Boolean, nullable=False, default=False)
+    is_allowed = Column(Boolean, nullable=False, default=False)
     url = Column(Text, nullable=False)
     organisation_work = Column(
         Boolean, nullable=False, server_default=text("FALSE"))
@@ -168,6 +168,7 @@ class Scholarship(Base):
     length_of_work = Column(INTERVAL, nullable=True)
     important_dates = Column(JSONB, nullable=True)
     description = Column(Text, nullable=True)
+    location = Column(Text, nullable=True)
 
     organisation_id = Column(
         UUID(as_uuid=True),
@@ -213,6 +214,8 @@ class EmailReminder(Base):
         ForeignKey("user.id", ondelete="CASCADE"),
         nullable=False,
     )
+
+    name = Column(Text, nullable=True)
 
     user = relationship("User", back_populates="email_reminders")
     

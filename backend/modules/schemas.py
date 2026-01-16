@@ -38,6 +38,7 @@ class ScholarshipBase(BaseModel):
     name: str
     value: Optional[int] = Field(gt=0)
     url: str
+    is_allowed: bool
     organisation_work: bool = False
     min_grade_average: Optional[float] = Field(ge=1.00, le=5.00)
     field_of_study: Optional[str] = None
@@ -83,8 +84,9 @@ class OrganisationRead(BaseModel):
 class EmailReminderBase(BaseModel):
     user_id: uuid.UUID
     scholarship_id: uuid.UUID
+    name: Optional[str] = None
     is_sent: bool
-    created_at: datetime
+    created_at: datetime = datetime.now()
     remind_at: datetime  
 
     class Config:
@@ -92,6 +94,7 @@ class EmailReminderBase(BaseModel):
 
 class EmailReminderCreate(BaseModel):
     scholarship_id: uuid.UUID
+    name: Optional[str] = None
     remind_at: datetime
 
     class Config:
@@ -100,8 +103,20 @@ class EmailReminderCreate(BaseModel):
 class EmailReminderRead(EmailReminderBase):
     id: uuid.UUID
 
+class EmailReminderDelete(BaseModel):
+    id: uuid.UUID
+
 class EmailReminderUpdate(BaseModel):
     scholarship_id: Optional[uuid.UUID] = None
     is_sent: Optional[bool] = None
     created_at: Optional[datetime] = None
     remind_at: Optional[datetime] = None
+
+class Statistics(BaseModel):
+    users: int
+    orgs: int
+    active_scholarships: int
+    inactive_scholarships: int
+
+    class Config:
+        from_attributes = True

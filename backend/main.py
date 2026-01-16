@@ -7,21 +7,30 @@ from contextlib import asynccontextmanager, suppress
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from modules.db import create_db_and_tables
+from modules.db import create_db_and_tables, async_session_maker
 from modules.models import User
 from modules.schemas import UserCreate, UserRead, UserUpdate
-from modules.users import auth_backend, current_active_user, fastapi_users, google_oauth_client, auth_backend
+from modules.users import auth_backend, current_active_user, fastapi_users, google_oauth_client, auth_backend, create_user
 from modules.utils.background_workers import load_scholarships_loop, send_emails_loop
 
 from modules.email_reminders import router as email_reminders_router
 from modules.scholarships import router as scholarships_router
 from modules.organisations import router as orgs_router
+from modules.admin import router as admin_router
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'https://stipendify.tk0.eu')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await create_db_and_tables()
+    try:
+        async with async_session_maker() as session:
+            await create_user(session, 
+                            os.getenv("ADMIN_USER", "admin@example.com"), 
+                            os.getenv("ADMIN_PASS", "Testpass123"), 
+                            is_superuser=True)
+    except:
+        pass
     scrape_task = asyncio.create_task(load_scholarships_loop())
     email_task = asyncio.create_task(send_emails_loop())
     app.state.scrape_task = scrape_task
@@ -78,11 +87,7 @@ app.include_router(
 app.include_router(scholarships_router)
 app.include_router(email_reminders_router)
 app.include_router(orgs_router)
-
-
-@app.get("/authenticated-route")
-async def authenticated_route(user: User = Depends(current_active_user)):
-    return {"message": f"Hi {user.email}!"}
+app.include_router(admin_router)
 
 
 if __name__ == "__main__":

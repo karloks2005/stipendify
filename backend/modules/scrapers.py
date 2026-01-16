@@ -15,7 +15,7 @@ def scrape_scholarships():
             for n in new:
                 sc = Scholarship(
                     name=n["title"],
-                    visible=True,
+                    is_allowed=True,
                     url=n["url"],
                     description=n["details"],
                     value=n["iznos"] or None)

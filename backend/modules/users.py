@@ -72,7 +72,7 @@ async def current_admin_user(user: User = Depends(current_active_user)) -> User:
     return user
 
 async def current_org_user(user: User = Depends(current_active_user)) -> User:
-    if user.role != "organisation":
+    if user.role != "organisation" and user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Orgs only",
@@ -95,7 +95,7 @@ async def create_user(session, email: str, password: str, is_superuser: bool = F
             async with get_user_manager_context(user_db) as user_manager:
                 user = await user_manager.create(
                     UserCreate(
-                        email=email, password=password
+                        email=email, password=password, is_superuser=is_superuser
                     )
                 )
                 print(f"User created {user}")

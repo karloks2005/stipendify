@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -7,6 +8,7 @@ from modules.db import get_async_session
 from modules.models import Scholarship, User
 from modules.schemas import ScholarshipCreate, ScholarshipRead, ScholarshipUpdate
 from modules.users import current_org_user
+from modules.utils.gcal_url_generator import generate_url
 
 router = APIRouter(prefix="/scholarships", tags=["scholarships"])
 
@@ -15,9 +17,17 @@ router = APIRouter(prefix="/scholarships", tags=["scholarships"])
 async def list_scholarships(
     session: AsyncSession = Depends(get_async_session),
 ):
-    result = await session.execute(select(Scholarship).where(Scholarship.visible))
+    result = await session.execute(select(Scholarship).where(Scholarship.is_allowed))
     scholarships = result.scalars().all()
     return scholarships
+
+@router.get("/add-to-gcal/{scholarship_id}")
+async def add_to_gcal(scholarship_id: uuid.UUID, session: AsyncSession = Depends(get_async_session)):
+    scholarship = session.get(Scholarship, scholarship_id)
+    if not scholarship:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+    return RedirectResponse(url=generate_url(scholarship))
 
 
 @router.get("/{scholarship_id}", response_model=ScholarshipRead)
@@ -58,6 +68,9 @@ async def update_scholarship(
     if not scholarship:
         raise HTTPException(status_code=404, detail="Scholarship not found")
 
+    if scholarship.organisation_id != user.organisation_id and not user.is_superuser:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
     for field, value in data.model_dump(exclude_unset=True).items():
         setattr(scholarship, field, value)
 
@@ -75,6 +88,8 @@ async def delete_scholarship(
     scholarship = await session.get(Scholarship, scholarship_id)
     if not scholarship:
         raise HTTPException(status_code=404, detail="Scholarship not found")
+    if scholarship.organisation_id != user.organisation_id and not user.is_superuser:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
     await session.delete(scholarship)
     await session.commit()
