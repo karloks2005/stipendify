@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from datetime import datetime
+from textwrap import shorten
 
 from modules.db import get_async_session
 from modules.models import Scholarship, User
@@ -23,11 +25,22 @@ async def list_scholarships(
 
 @router.get("/add-to-gcal/{scholarship_id}")
 async def add_to_gcal(scholarship_id: uuid.UUID, session: AsyncSession = Depends(get_async_session)):
-    scholarship = session.get(Scholarship, scholarship_id)
+    scholarship = await session.get(Scholarship, scholarship_id)
     if not scholarship:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
-    return RedirectResponse(url=generate_url(scholarship))
+    dates = scholarship.important_dates
+    if dates is not None:
+        date = dates.get("end_date")
+    else:
+        date = None
+    if date is not None:
+        date = datetime.fromisoformat(date)
+    else:
+        date = datetime.now()
+    name = f"[Stipendify] {scholarship.name}"
+    description = f"Stipendify reminder:\n{shorten(scholarship.description, width=240, placeholder="...")}\n\nhttps://stipendify.tk0.eu"
+    return RedirectResponse(url=generate_url(name, description, date))
 
 
 @router.get("/{scholarship_id}", response_model=ScholarshipRead)
