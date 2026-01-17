@@ -115,7 +115,24 @@ function HomePage() {
 
   // Lokalno uklanjanje podsjetnika iz state-a bez mrežnog poziva
   const handleDeleteReminder = (reminderId) => {
-    setReminders((prev) => prev.filter((r) => r.id !== reminderId))
+    console.log('Brisanje podsjetnika s ID-jem:', reminderId)
+    const payload = {
+      "id": reminderId
+    };
+
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/email-reminders`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .then((resp) => {
+      if (!resp.ok) throw new Error('Neuspješno brisanje podsjetnika')
+      // Ukloni iz lokalnog state-a
+      setReminders((prev) => prev.filter((r) => r.id !== reminderId))
+    })
+    .catch((err) => {
+      console.error('Greška kod brisanja podsjetnika:', err)
+    })
   }
 
   if (loading) return <div className="flex h-screen items-center justify-center font-bold text-gray-400">Učitavanje...</div>

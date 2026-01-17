@@ -66,7 +66,13 @@ export default function ScholarshipCard({ scholarship, onReminderClick }) {
 
       <div className="px-4 py-2 border-t border-gray-100 bg-gray-50">
         <div className="flex items-center justify-between text-sm text-gray-600">
-          <div>Krajnji rok: <span className="font-medium text-gray-800">{"14.11.2025"}</span></div>
+          {important_dates && important_dates.end_date ? (
+            <div>Krajnji rok: <span className="font-medium text-gray-800">
+              {new Date(important_dates.end_date).toLocaleDateString('hr-HR')}
+            </span></div>
+          ) : (
+            <div></div>
+          )}
           <div>
           <button
               onClick={() => onReminderClick && onReminderClick(id)}

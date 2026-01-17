@@ -2,17 +2,17 @@ import { useState } from 'react';
 
 const ScholarshipPostForm = ({ onClose, onCreated }) => {
   const [formData, setFormData] = useState({
-    naziv: 'Stipendija tvrtke ABC za IT studente',
-    iznos: '800',
-    valuta: 'EUR',
+    name: '',
+    iznos: '200',
     period: 'mjesečno',
     opis: '',
-    podrucje: 'Tehničke znanosti',
-    mjesto: 'Zagreb',
-    godina: '2. godina',
-    prosjek: '4,00',
-    obvezaRada: 'da',
-    trajanje: '12',
+    podrucje: '',
+    mjesto: '',
+    godina: '',
+    prosjek: '',
+    obvezaRada: 'ne',
+    trajanjeRada: '0',
+    trajanje: '9',
     link: '',
     rokPrijave: '',
     pocetakStipendije: ''
@@ -20,11 +20,47 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'obvezaRada') {
+      setFormData(prev => ({
+        ...prev,
+        obvezaRada: value,
+        // Ako je odabrano 'ne', resetiraj trajanje rada na 0; ako je 'da' i bilo je 0, postavi 1 kao početnu vrijednost
+        trajanjeRada: value === 'ne' ? '0' : (prev.trajanjeRada === '0' ? '1' : prev.trajanjeRada)
+      }));
+      return;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Ovdje možete dodati logiku za slanje podataka na backend ili obradu forme
+    const payload = {
+      "name": formData.name,
+      "value": parseFloat(formData.iznos) || 0,
+      "url": formData.link,
+      "is_allowed": false,
+      "organisation_work": formData.obvezaRada === 'da',
+      "min_grade_average": parseFloat(formData.prosjek) || 0,
+      "field_of_study": formData.podrucje,
+      "type_of_study": "string",
+      "min_year_of_study": parseInt(formData.godina) || 1,
+      "length_of_scholarship": `P${formData.trajanje}M`,
+      "length_of_work": `P${formData.trajanjeRada}M`,
+      "important_dates": {
+        "end_date": formData.rokPrijave,
+        "start_date": formData.pocetakStipendije
+      },
+      "description": formData.opis,
+      "location": formData.mjesto,
+      "is_monthly": formData.period === 'mjesečno'
+    }
+
+    console.log('Submitting scholarship post:', formData);
+  }
+
   return (
-    <div className="bg-white rounded-3xl shadow-2xl p-6 lg:p-8 max-w-lg mx-auto relative border border-gray-100">
+    <div className="bg-white rounded-3xl shadow-2xl p-6 lg:p-8 max-w-xl mx-auto relative border border-gray-100">
       <button
         onClick={() => { if (typeof onClose === 'function') onClose() }}
         className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 transition-colors"
@@ -61,7 +97,7 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
               </div>
             </FormRow>
             <FormRow label="Opis stipendije">
-              <textarea name="opis" placeholder="Unesite detaljan opis stipendije" className="w-full border border-gray-300 rounded px-3 py-2 h-24 resize-none outline-none focus:ring-1 focus:ring-blue-400 text-sm italic" />
+              <textarea name="opis" value={formData.opis} onChange={handleInputChange} placeholder="Unesite detaljan opis stipendije" className="w-full border border-gray-300 rounded px-3 py-2 h-24 resize-none outline-none focus:ring-1 focus:ring-blue-400 text-sm italic" />
             </FormRow>
           </div>
         </section>
@@ -84,12 +120,31 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
                 <option>Split</option>
                 <option>Rijeka</option>
                 <option>Osijek</option>
+                <option>Zadar</option>
+                <option>Slavonski Brod</option>
+                <option>Pula</option>
+                <option>Karlovac</option>
+                <option>Varaždin</option>
+                <option>Šibenik</option>
+                <option>Sisak</option>
+                <option>Velika Gorica</option>
+                <option>Vinkovci</option>
+                <option>Vukovar</option>
+                <option>Dubrovnik</option>
+                <option>Bjelovar</option>
+                <option>Koprivnica</option>
+                <option>Požega</option>
+                <option>Čakovec</option>
+                <option>Trogir</option>
               </select>
             </FormRow>
             <FormRow label="Minimalna godina studija">
               <select name="godina" value={formData.godina} onChange={handleInputChange} className="w-32 border border-gray-300 rounded px-3 py-1.5 outline-none bg-white">
+                <option>1. godina</option>
                 <option>2. godina</option>
                 <option>3. godina</option>
+                <option>4. godina</option>
+                <option>5. godina</option>
               </select>
             </FormRow>
             <FormRow label="Minimalni prosjek ocjena">
@@ -109,10 +164,23 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
                 <Radio label="Ne" name="obvezaRada" value="ne" checked={formData.obvezaRada === 'ne'} onChange={handleInputChange} />
               </div>
             </FormRow>
-            <FormRow label="Trajanje stipendije">
+            {formData.obvezaRada === 'da' && (
+              <FormRow label="Trajanje rada u tvrtki (u mjesecima)">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="number"
+                    name="trajanjeRada"
+                    min="1"
+                    value={formData.trajanjeRada}
+                    onChange={handleInputChange}
+                    className="w-16 border border-gray-300 rounded px-3 py-1.5 outline-none"
+                  />
+                </div>
+              </FormRow>
+            )}
+            <FormRow label="Trajanje stipendije (u mjesecima)">
               <div className="flex items-center gap-3">
                 <input name="trajanje" value={formData.trajanje} onChange={handleInputChange} className="w-16 border border-gray-300 rounded px-3 py-1.5 outline-none" />
-                <span className="text-sm">mjeseca</span>
               </div>
             </FormRow>
           </div>
@@ -124,18 +192,30 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
           <hr className="border-blue-200 mb-4" />
           <div className="space-y-4 text-sm font-medium">
             <FormRow label="Poveznica na prijavni obrazac">
-              <input name="link" placeholder="https://www..." className="w-full border border-gray-300 rounded px-3 py-1.5 outline-none" />
+              <input name="link" value={formData.link} onChange={handleInputChange} placeholder="https://www..." className="w-full border border-gray-300 rounded px-3 py-1.5 outline-none" />
             </FormRow>
             <FormRow label="Rok prijave">
               <div className="relative">
-                <input type="text" placeholder="Odaberite datum" className="w-full border border-gray-300 rounded px-3 py-1.5 outline-none pr-10" />
-                <span className="absolute right-3 top-2 text-gray-400">📅</span>
+                <input
+                  type="date"
+                  name="rokPrijave"
+                  value={formData.rokPrijave}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded px-3 py-1.5 outline-none pr-10"
+                />
+                <span className="absolute right-3 top-2 text-gray-400"></span>
               </div>
             </FormRow>
             <FormRow label="Početak stipendiranja">
               <div className="relative">
-                <input type="text" placeholder="Odaberite datum" className="w-full border border-gray-300 rounded px-3 py-1.5 outline-none pr-10" />
-                <span className="absolute right-3 top-2 text-gray-400">📅</span>
+                <input
+                  type="date"
+                  name="pocetakStipendije"
+                  value={formData.pocetakStipendije}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 rounded px-3 py-1.5 outline-none pr-10"
+                />
+                <span className="absolute right-3 top-2 text-gray-400"></span>
               </div>
             </FormRow>
           </div>
