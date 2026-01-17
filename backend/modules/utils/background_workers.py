@@ -97,4 +97,4 @@ async def load_scholarships_loop():
 async def send_emails_loop():
     while True:
         await send_emails_async()
-        await asyncio.sleep(30*60)
+        await asyncio.sleep(5*60)

@@ -169,6 +169,7 @@ class Scholarship(Base):
     important_dates = Column(JSONB, nullable=True)
     description = Column(Text, nullable=True)
     location = Column(Text, nullable=True)
+    is_monthly = Column(Boolean, nullable=False, default=False)
 
     organisation_id = Column(
         UUID(as_uuid=True),
