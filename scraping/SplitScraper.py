@@ -174,7 +174,8 @@ class SplitScraper:
             "categories": self.get_categories(),
             "iznosi": max(self.get_amounts() + [0]),
             "trajanje": self.get_durations(),
-            "org": "Grad Split"
+            "org": "Grad Split",
+            "location": "Split"
         }
 
     def __str__(self):

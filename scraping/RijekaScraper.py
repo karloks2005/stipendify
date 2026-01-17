@@ -90,7 +90,8 @@ class RijekaScraper:
             "uvjeti": self.get_lists(),
             "trajanje": self.get_durations(),
             "iznos": 0,
-            "org": "Grad Rijeka"
+            "org": "Grad Rijeka",
+            "location": "Rijeka"
         }
 
     def get_matching_iznos_text(self):

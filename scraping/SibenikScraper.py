@@ -225,7 +225,8 @@ class SibenikScraper:
             "categories": self.get_categories(),
             "url": self.url,
             "iznos": max(self.get_amounts()+[0]),
-            "org": "Grad Šibenik"
+            "org": "Grad Šibenik",
+            "location": "Šibenik"
         }
 
     def __str__(self):

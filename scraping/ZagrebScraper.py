@@ -56,7 +56,8 @@ class ZagrebScraper:
             "details": details,
             "iznos": iznos,
             "trajanje": trajanje,
-            "org": "Grad Zagreb"
+            "org": "Grad Zagreb",
+            "location": "Zagreb"
         }
 
     def __str__(self):
