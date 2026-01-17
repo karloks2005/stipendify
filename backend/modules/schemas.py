@@ -48,6 +48,7 @@ class ScholarshipBase(BaseModel):
     length_of_work: Optional[timedelta] = None
     important_dates: Optional[dict] = None
     description: Optional[str] = None
+    location: Optional[str] = None
     is_monthly: Optional[bool] = True
 
     class Config:
