@@ -48,6 +48,7 @@ async def delete_email_reminder(
     session: AsyncSession = Depends(get_async_session),
 ):
     stmt = delete(EmailReminder).where(EmailReminder.id == payload.id)
-    session.execute(stmt)
+    await session.execute(stmt)
     await session.commit()
+
     return "OK"
