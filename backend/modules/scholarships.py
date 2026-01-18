@@ -61,9 +61,11 @@ async def get_scholarship(
 async def create_scholarship(
     data: ScholarshipCreate,
     session: AsyncSession = Depends(get_async_session),
-    org: User = Depends(current_org_user),
+    user: User = Depends(current_org_user),
 ):
-    scholarship = Scholarship(organisation_id = org.organisation_id, **data.model_dump())
+    if user.is_superuser == False:
+        data.is_allowed = False
+    scholarship = Scholarship(organisation_id = user.organisation_id, **data.model_dump())
     session.add(scholarship)
     await session.commit()
     await session.refresh(scholarship)
@@ -81,10 +83,12 @@ async def update_scholarship(
     if not scholarship:
         raise HTTPException(status_code=404, detail="Scholarship not found")
 
-    if scholarship.organisation_id != user.organisation_id and not user.is_superuser:
+    if scholarship.organisation_id != user.organisation_id and user.is_superuser == False:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     for field, value in data.model_dump(exclude_unset=True).items():
+        if field == "is_allowed" and value == True and user.is_superuser == False:
+            continue # dont allow orgs to make own scholarships visible
         setattr(scholarship, field, value)
 
     await session.commit()
@@ -101,7 +105,7 @@ async def delete_scholarship(
     scholarship = await session.get(Scholarship, scholarship_id)
     if not scholarship:
         raise HTTPException(status_code=404, detail="Scholarship not found")
-    if scholarship.organisation_id != user.organisation_id and not user.is_superuser:
+    if scholarship.organisation_id != user.organisation_id and user.is_superuser == False:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
     await session.delete(scholarship)

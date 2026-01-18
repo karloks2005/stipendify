@@ -16,13 +16,13 @@ async def unlisted_scholarships(
     user: User = Depends(current_admin_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    result = await session.execute(select(Scholarship).where(not Scholarship.is_allowed))
+    result = await session.execute(select(Scholarship).where(Scholarship.is_allowed == False))
     scholarships = result.scalars().all()
     return scholarships
 
 
 @router.get("/stats", response_model=Statistics)
-async def unlisted_scholarships(
+async def stats(
     user: User = Depends(current_admin_user),
     session: AsyncSession = Depends(get_async_session),
 ):
@@ -30,5 +30,5 @@ async def unlisted_scholarships(
     users = (await session.execute(db_count(User))).scalar()
     orgs = (await session.execute(db_count(Organisation))).scalar()
     active_scholarships = (await session.execute(db_count(Scholarship).where(Scholarship.is_allowed))).scalar()
-    inactive_scholarships = (await session.execute(db_count(Scholarship).where(not Scholarship.is_allowed))).scalar()
+    inactive_scholarships = (await session.execute(db_count(Scholarship).where(Scholarship.is_allowed == False))).scalar()
     return Statistics(users=users, orgs=orgs, active_scholarships=active_scholarships, inactive_scholarships=inactive_scholarships)
