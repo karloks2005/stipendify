@@ -59,7 +59,12 @@ class ScholarshipCreate(ScholarshipBase):
 
 class ScholarshipUpdate(ScholarshipBase):
     name: Optional[str] = None
+    value: Optional[int] = None
     url: Optional[str] = None
+    is_allowed: Optional[bool] = None
+    organisation_work: Optional[bool] = None
+    min_grade_average: Optional[float] = None
+    is_monthly: Optional[bool] = False
 
 class ScholarshipRead(ScholarshipBase):
     id: uuid.UUID
