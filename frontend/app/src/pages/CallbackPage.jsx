@@ -79,6 +79,25 @@ export default function CallbackPage() {
               } catch (err) {
                 console.warn('login rehydration failed', err);
               }
+              
+              // Check if user is admin and redirect accordingly
+              const userResp = await fetch(`${process.env.REACT_APP_BACKEND_URL}/users/me`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              
+              if (userResp.ok) {
+                const userData = await userResp.json();
+                console.log('User data after OAuth:', userData);
+                console.log('Is superuser:', userData.is_superuser);
+                if (userData.is_superuser === true) {
+                  console.log('OAuth exchange succeeded; navigating to /dashboard');
+                  navigate('/dashboard', { replace: true });
+                  return;
+                }
+              }
+              
               console.log('OAuth exchange succeeded; navigating to /stipendije');
               navigate('/stipendije', { replace: true });
               return;

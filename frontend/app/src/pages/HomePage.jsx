@@ -11,6 +11,7 @@ import ScholarshipFilterForm from '../components/ScholarshipFilterForm'
 
 function HomePage() {
   const [scholarships, setScholarships] = useState([])
+  const [organisationScholarships, setOrgScholarships] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const { accessToken, initializing, logout, user } = useAuth()
@@ -19,6 +20,7 @@ function HomePage() {
   const [selectedScholarshipId, setSelectedScholarshipId] = useState(null)
   const [dashboardDate, setDashboardDate] = useState(new Date())
   const [showPostForm, setShowPostForm] = useState(false)
+  const [editingScholarship, setEditingScholarship] = useState(null)
 
   // Placeholder reminders
   const [reminders, setReminders] = useState([])
@@ -61,7 +63,23 @@ function HomePage() {
       })
       if (!response.ok) throw new Error('Neuspješno dohvaćanje stipendija')
       const data = await response.json()
-      setScholarships(data)
+      setScholarships(data.reverse()) // Prikaži najnovije prve
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchOrgScholarships = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/org/scholarships/`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+      })
+      if (!response.ok) throw new Error('Neuspješno dohvaćanje organizacijskih stipendija')
+      const data = await response.json()
+      setOrgScholarships(data.reverse()) // Prikaži najnovije prve
     } catch (err) {
       setError(err.message)
     } finally {
@@ -93,24 +111,35 @@ function HomePage() {
       setTimeout(() => { navigate('/') }, 2000);
       return;
     }
+    
+    // Redirect admin to dashboard
+    if (user && user.is_superuser === true) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+    
     fetchScholarships()
     fetchReminders()
+    
+    // Dohvati organizacijske stipendije samo ako je korisnik organizacija
+    if (user && user.organisation_id != null) {
+      fetchOrgScholarships()
+    }
+    
     console.log(user)
-  }, [initializing, accessToken, navigate])
+  }, [initializing, accessToken, navigate, user])
 
   const isOrganization = Boolean(user && user.organisation_id != null)
 
-  // Placeholder for organization's own scholarships (replace with API fetch later)
-  const orgScholarships = isOrganization ? [
-    {
-      id: 'org-placeholder-1',
-      title: `Moja stipendija - ${user?.first_name || user?.email || 'Organizacija'}`,
-      description: 'Ovo je placeholder stipendija koju je kreirala ova organizacija.',
-      owner: user?.id || null,
+  const handleReminderClick = (scholarshipId, scholarshipData = null) => {
+    if (scholarshipData) {
+      // Ako je proslijeđena stipendija, otvorit ćemo edit formu
+      setEditingScholarship(scholarshipData)
+    } else {
+      // Inače otvoramo reminder formu
+      setSelectedScholarshipId(scholarshipId)
     }
-  ] : []
-
-  const handleReminderClick = (scholarshipId) => setSelectedScholarshipId(scholarshipId)
+  }
   const handleReminderClose = () => setSelectedScholarshipId(null)
 
   // Lokalno uklanjanje podsjetnika iz state-a bez mrežnog poziva
@@ -166,7 +195,7 @@ function HomePage() {
           {/* SIDEBAR: Kalendar prvi na mobitelu (order-1) */}
           <aside className="order-1 lg:order-2 flex flex-col gap-6 lg:h-full lg:overflow-hidden lg:col-span-1">
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 shrink-0">
-              <Calendar selectedDate={dashboardDate} onDateSelect={setDashboardDate} />
+              <Calendar selectedDate={dashboardDate} onDateSelect={setDashboardDate} reminders={reminders} />
             </div>
 
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 flex flex-col lg:overflow-hidden lg:flex-1 min-h-[350px] lg:min-h-0">
@@ -210,21 +239,30 @@ function HomePage() {
           <section className="order-2 lg:order-1 lg:col-span-2 lg:overflow-y-auto pr-2 custom-scrollbar space-y-6 pb-20">
             {isOrganization ? (
               <>
-                <h3 className="font-bold text-gray-900 text-lg">Moje stipendije</h3>
-                {orgScholarships.map((s) => (
-                  <ScholarshipCard key={s.id} scholarship={s} onReminderClick={handleReminderClick} />
-                ))}
+                <h3 className="font-bold text-gray-900 text-xl">Moje stipendije</h3>
+                {organisationScholarships.length > 0 ? (
+                  organisationScholarships.map((s) => (
+                    <ScholarshipCard key={s.id} scholarship={s} onReminderClick={handleReminderClick} onUpdated={() => { fetchScholarships(); fetchOrgScholarships(); }} isUserScholarship={true} />
+                  ))
+                ) : (
+                  <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+                    Još niste kreirali nijednu stipendiju.
+                  </div>
+                )}
 
                 <h3 className="font-bold text-gray-900 text-xl mt-6">Sve stipendije</h3>
-                {scholarships.map((s) => (
-                  <ScholarshipCard key={s.id} scholarship={s} onReminderClick={handleReminderClick} />
-                ))}
+                {scholarships
+                  .filter(s => !organisationScholarships.some(org => org.id === s.id))
+                  .map((s) => (
+                    <ScholarshipCard key={s.id} scholarship={s} onReminderClick={handleReminderClick} onUpdated={() => { fetchScholarships(); fetchOrgScholarships(); }} isUserScholarship={false} />
+                  ))
+                }
               </>
             ) : (
               <>
                 <h3 className="font-bold text-gray-900 text-xl lg:hidden mb-2">Dostupne Stipendije</h3>
                 {scholarships.map((s) => (
-                  <ScholarshipCard key={s.id} scholarship={s} onReminderClick={handleReminderClick} />
+                  <ScholarshipCard key={s.id} scholarship={s} onReminderClick={handleReminderClick} onUpdated={() => fetchScholarships()} isUserScholarship={false} />
                 ))}
               </>
             )}
@@ -247,13 +285,23 @@ function HomePage() {
             </motion.div>
           </motion.div>
         )}
+        {editingScholarship && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          >
+            <motion.div initial={{ scale: 0.95, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, y: 20, opacity: 0 }} className="w-full max-w-4xl">
+              <ScholarshipPostForm scholarship={editingScholarship} onClose={() => setEditingScholarship(null)} onCreated={async () => { await fetchScholarships(); await fetchOrgScholarships(); }} />
+            </motion.div>
+          </motion.div>
+        )}
         {showPostForm && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
           >
             <motion.div initial={{ scale: 0.95, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, y: 20, opacity: 0 }} className="w-full max-w-4xl">
-              <ScholarshipPostForm onClose={() => setShowPostForm(false)} onCreated={async () => { await fetchScholarships(); }} />
+              <ScholarshipPostForm onClose={() => setShowPostForm(false)} onCreated={async () => { await fetchScholarships(); await fetchOrgScholarships(); }} />
             </motion.div>
           </motion.div>
         )}

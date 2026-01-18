@@ -66,8 +66,29 @@ function LoginAndRegisterPage() {
         console.warn('login rehydration failed', err);
       }
 
-      // Navigate after login is fully applied
-      navigate('/stipendije');
+      // Navigate based on user role - admin goes to dashboard, others to stipendije
+      // Note: We need to fetch user info to determine if admin
+      const userResp = await fetch(`${process.env.REACT_APP_BACKEND_URL}/users/me`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: { 'Authorization': `Bearer ${data?.access_token}` }
+      });
+      
+      if (userResp.ok) {
+        const userData = await userResp.json();
+        console.log('User data after login:', userData);
+        console.log('Is superuser:', userData.is_superuser);
+        if (userData.is_superuser === true) {
+          console.log('Redirecting to /dashboard');
+          navigate('/dashboard', { replace: true });
+        } else {
+          console.log('Redirecting to /stipendije');
+          navigate('/stipendije', { replace: true });
+        }
+      } else {
+        console.log('Failed to fetch user data, redirecting to /stipendije');
+        navigate('/stipendije', { replace: true });
+      }
     } catch (err) {
       console.error('Network error during login', err);
     } finally {

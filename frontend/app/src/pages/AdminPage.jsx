@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import ScholarshipCard from '../components/ScholarshipCard'
 
 function AdminPage() {
   const [scholarships, setScholarships] = useState([])
   const [stats, setStats] = useState({
-    registeredStudents: 1500,
-    registeredOrgs: 60,
-    activeScholarships: 160,
-    pendingScholarships: 12
+    registeredStudents: 0,
+    registeredOrgs: 0,
+    activeScholarships: 0,
+    pendingScholarships: 0
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -96,13 +97,50 @@ function AdminPage() {
   const handleApprove = async (scholarshipId) => {
     // TODO: Connect to API endpoint for approval
     console.log('Approving scholarship:', scholarshipId)
-    setScholarships(prev => prev.filter(s => s.id !== scholarshipId))
+
+    const payload = { 
+      is_allowed: true
+     }
+
+    fetch(`${process.env.REACT_APP_BACKEND_URL}/scholarships/${scholarshipId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Greška pri odobravanju stipendije')
+      if (response.ok) {
+        setScholarships(prev => prev.filter(s => s.id !== scholarshipId))
+      }
+    })
+    .catch(err => {
+      console.error('Greška:', err)
+      alert('Neuspješno odobravanje stipendije')
+    })
   }
 
   const handleReject = async (scholarshipId) => {
     // TODO: Connect to API endpoint for rejection
     console.log('Rejecting scholarship:', scholarshipId)
     setScholarships(prev => prev.filter(s => s.id !== scholarshipId))
+
+    fetch (`${process.env.REACT_APP_BACKEND_URL}/scholarships/${scholarshipId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Greška pri odbijanju stipendije')
+      // Optionally refresh stats or scholarships list here
+    })
+    .catch(err => {
+      console.error('Greška:', err)
+      alert('Neuspješno odbijanje stipendije')
+    })
   }
 
   if (loading) return <div className="p-6">Loading...</div>
@@ -152,9 +190,10 @@ function AdminPage() {
           <div className="space-y-4">
             {scholarships.length > 0 ? (
               scholarships.map((scholarship) => (
-                <ApprovalCard 
+                <ScholarshipCard 
                   key={scholarship.id}
                   scholarship={scholarship}
+                  showApprovalActions={true}
                   onApprove={handleApprove}
                   onReject={handleReject}
                 />
@@ -178,67 +217,6 @@ function StatCard({ number, label }) {
       <div className="text-4xl font-bold text-gray-900 mb-2">{number}</div>
       <div className="text-sm text-gray-600 font-medium">{label}</div>
     </div>
-  )
-}
-
-// Approval Card Component
-function ApprovalCard({ scholarship, onApprove, onReject }) {
-  const [expanded, setExpanded] = useState(false)
-  const TRUNCATE_LENGTH = 150
-  const description = scholarship.description || 'Nema opisa dostupnog.'
-  const isLong = description.length > TRUNCATE_LENGTH
-  const preview = isLong ? description.slice(0, TRUNCATE_LENGTH).trimEnd() : description
-
-  return (
-    <article className="bg-white rounded-lg shadow-xl hover:shadow-2xl transition-shadow duration-150 overflow-hidden">
-      <div className="px-6 py-4">
-        <h3 className="text-lg font-semibold text-gray-900">{scholarship.name}</h3>
-        
-        <div className="flex justify-between items-center mt-2">
-          <div className="text-sm bg-blue-200 p-2 text-blue-400 font-semibold rounded-md">
-            Grad Šibenik
-          </div>
-          <div className="text-sm text-gray-600 bg-gray-300 p-2 font-semibold rounded-md">
-            {scholarship.value ? `${scholarship.value}€` : '520€'}
-          </div>
-        </div>
-
-        <div className={`${expanded ? '' : 'overflow-hidden max-h-36'} mt-3`}>
-          <p className="text-sm text-gray-500">
-            {expanded || !isLong ? description : `${preview}...`}
-          </p>
-        </div>
-
-        {isLong && (
-          <button
-            onClick={() => setExpanded((v) => !v)}
-            className="mt-2 text-sm text-blue-600 hover:underline"
-          >
-            {expanded ? 'Show less' : 'Show more'}
-          </button>
-        )}
-      </div>
-
-      <div className="px-6 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-        <div className="text-sm text-gray-600">
-          Krajnji rok: <span className="font-medium text-gray-800">14.11.2025.</span>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => onApprove(scholarship.id)}
-            className="bg-green-500 hover:bg-green-600 hover:scale-105 duration-150 text-white px-4 py-1.5 rounded-md text-sm font-bold shadow-md"
-          >
-            Odobri
-          </button>
-          <button
-            onClick={() => onReject(scholarship.id)}
-            className="bg-red-500 hover:bg-red-600 hover:scale-105 duration-150 text-white px-4 py-1.5 rounded-md text-sm font-bold shadow-md"
-          >
-            Odbij
-          </button>
-        </div>
-      </div>
-    </article>
   )
 }
 

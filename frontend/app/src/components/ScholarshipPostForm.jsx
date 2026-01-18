@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { parse, end, toSeconds } from "iso8601-duration";
 
-const ScholarshipPostForm = ({ onClose, onCreated }) => {
+const ScholarshipPostForm = ({ onClose, onCreated, scholarship = null }) => {
+
+  const {accessToken} = useAuth();
+
   const [formData, setFormData] = useState({
     name: '',
     iznos: '200',
@@ -18,13 +23,44 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
     pocetakStipendije: ''
   });
 
+  useEffect(() => {
+    if (scholarship) {
+      // Parsiranje polja za editanje
+      const arbejdLength = toSeconds(parse(scholarship.length_of_scholarship))/2592000;
+      const arbetLength = toSeconds(parse(scholarship.length_of_work))/2592000;
+      
+      // Mapiranje godine u format koji koristi select
+      let godinaValue = '';
+      if (scholarship.min_year_of_study) {
+        const yearNum = scholarship.min_year_of_study.toString();
+        godinaValue = `${yearNum}. godina`;
+      }
+      
+      setFormData({
+        name: scholarship.name || '',
+        iznos: scholarship.value?.toString() || '200',
+        period: scholarship.is_monthly ? 'mjesečno' : 'jednokratno',
+        opis: scholarship.description || '',
+        podrucje: scholarship.field_of_study || '',
+        mjesto: scholarship.location || '',
+        godina: godinaValue,
+        prosjek: scholarship.min_grade_average?.toString() || '',
+        obvezaRada: scholarship.organisation_work ? 'da' : 'ne',
+        trajanjeRada: arbetLength,
+        trajanje: arbejdLength,
+        link: scholarship.url || '',
+        rokPrijave: scholarship.important_dates?.end_date?.split('T')[0] || '',
+        pocetakStipendije: scholarship.important_dates?.start_date?.split('T')[0] || ''
+      });
+    }
+  }, [scholarship]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     if (name === 'obvezaRada') {
       setFormData(prev => ({
         ...prev,
         obvezaRada: value,
-        // Ako je odabrano 'ne', resetiraj trajanje rada na 0; ako je 'da' i bilo je 0, postavi 1 kao početnu vrijednost
         trajanjeRada: value === 'ne' ? '0' : (prev.trajanjeRada === '0' ? '1' : prev.trajanjeRada)
       }));
       return;
@@ -34,7 +70,10 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Ovdje možete dodati logiku za slanje podataka na backend ili obradu forme
+    
+    // Ekstraktuj broj iz "1. godina" formata
+    const godinaNum = parseInt(formData.godina.match(/\d+/)?.[0]) || 1;
+    
     const payload = {
       "name": formData.name,
       "value": parseFloat(formData.iznos) || 0,
@@ -43,8 +82,8 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
       "organisation_work": formData.obvezaRada === 'da',
       "min_grade_average": parseFloat(formData.prosjek) || 0,
       "field_of_study": formData.podrucje,
-      "type_of_study": "string",
-      "min_year_of_study": parseInt(formData.godina) || 1,
+      "type_of_study": "Prijediplomski",
+      "min_year_of_study": godinaNum,
       "length_of_scholarship": `P${formData.trajanje}M`,
       "length_of_work": `P${formData.trajanjeRada}M`,
       "important_dates": {
@@ -56,8 +95,42 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
       "is_monthly": formData.period === 'mjesečno'
     }
 
+    const method = scholarship ? 'PUT' : 'POST';
+    const url = scholarship 
+      ? `${process.env.REACT_APP_BACKEND_URL}/scholarships/${scholarship.id}`
+      : `${process.env.REACT_APP_BACKEND_URL}/scholarships`;
+
+    fetch(url, {
+      method: method,
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('FAILURE:', response.statusText);
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('SUCCESS', data);
+      if (typeof onCreated === 'function') {
+        onCreated();
+      }
+      if (typeof onClose === 'function') {
+        onClose();
+      }
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+
     console.log('Submitting scholarship post:', formData);
   }
+
+  const isEditing = scholarship !== null;
 
   return (
     <div className="bg-white rounded-3xl shadow-2xl p-6 lg:p-8 max-w-xl mx-auto relative border border-gray-100">
@@ -72,7 +145,7 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
       </button>
       {/* Header */}
       <div className="px-8 py-6 flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">Objava novog natječaja za stipendiju</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{isEditing ? 'Uredi stipendiju' : 'Objava novog natječaja za stipendiju'}</h2>
       </div>
 
       {/* Form Content */}
@@ -84,7 +157,7 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
           <hr className="border-blue-200 mb-4" />
           <div className="space-y-4">
             <FormRow label="Naziv natječaja">
-              <input name="naziv" value={formData.naziv} onChange={handleInputChange} className="w-full border border-gray-300 rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-400" />
+              <input name="name" value={formData.name} onChange={handleInputChange} className="w-full border border-gray-300 rounded px-3 py-1.5 outline-none focus:ring-1 focus:ring-blue-400" />
             </FormRow>
             <FormRow label="Iznos stipendije">
               <div className="flex gap-2">
@@ -180,7 +253,7 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
             )}
             <FormRow label="Trajanje stipendije (u mjesecima)">
               <div className="flex items-center gap-3">
-                <input name="trajanje" value={formData.trajanje} onChange={handleInputChange} className="w-16 border border-gray-300 rounded px-3 py-1.5 outline-none" />
+                <input type="number" name="trajanje" min="1" value={formData.trajanje} onChange={handleInputChange} className="w-16 border border-gray-300 rounded px-3 py-1.5 outline-none" />
               </div>
             </FormRow>
           </div>
@@ -224,18 +297,10 @@ const ScholarshipPostForm = ({ onClose, onCreated }) => {
         {/* Footer Button */}
         <div className="pt-4 flex justify-end">
           <button 
-            onClick={async () => {
-              console.log(formData)
-              try {
-                if (typeof onCreated === 'function') await onCreated(formData)
-              } catch (err) {
-                console.error('Error in onCreated callback', err)
-              }
-              if (typeof onClose === 'function') onClose()
-            }}
+            onClick={handleSubmit}
             className="bg-[#2D3339] text-white px-6 py-2.5 rounded-lg font-bold shadow-md hover:bg-black transition-all active:scale-95"
           >
-            Objavi natječaj
+            {isEditing ? 'Spremi izmjene' : 'Objavi natječaj'}
           </button>
         </div>
       </div>

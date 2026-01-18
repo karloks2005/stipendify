@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-function Calendar({ selectedDate, onDateSelect }) {
+function Calendar({ selectedDate, onDateSelect, reminders = [] }) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
 
   const daysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
@@ -14,6 +14,15 @@ function Calendar({ selectedDate, onDateSelect }) {
 
   const changeMonth = (delta) => {
     setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + delta, 1))
+  }
+
+  const hasReminder = (date) => {
+    return reminders.some(reminder => {
+      const reminderDate = new Date(reminder.remind_at)
+      return reminderDate.getDate() === date.getDate() &&
+             reminderDate.getMonth() === date.getMonth() &&
+             reminderDate.getFullYear() === date.getFullYear()
+    })
   }
 
   const renderCalendar = () => {
@@ -33,19 +42,25 @@ function Calendar({ selectedDate, onDateSelect }) {
         selectedDate.getMonth() === currentMonth.getMonth() &&
         selectedDate.getFullYear() === currentMonth.getFullYear()
       const isToday = new Date().toDateString() === date.toDateString()
+      const hasReminderOnDay = hasReminder(date)
 
       days.push(
         <button
           key={day}
           type="button"
           onClick={() => onDateSelect && onDateSelect(date)}
-          className={`h-9 lg:h-10 flex items-center justify-center rounded-full text-sm font-medium transition-colors
+          className={`h-9 lg:h-10 flex flex-col items-center justify-center rounded-full text-sm font-medium transition-colors relative
             ${isSelected ? 'bg-blue-400 text-white' : ''}
             ${isToday && !isSelected ? 'text-blue-600 font-bold' : ''}
             ${!isSelected && !isToday ? 'text-gray-700 hover:bg-gray-100' : ''}
           `}
         >
-          {day}
+          <span>{day}</span>
+          {hasReminderOnDay && (
+            <span className={`absolute bottom-1 w-1 h-1 rounded-full ${
+              isSelected ? 'bg-white' : 'bg-blue-500'
+            }`}></span>
+          )}
         </button>
       )
     }
