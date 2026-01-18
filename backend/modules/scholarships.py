@@ -75,7 +75,7 @@ async def update_scholarship(
     scholarship_id: uuid.UUID,
     data: ScholarshipUpdate,
     session: AsyncSession = Depends(get_async_session),
-    org: User = Depends(current_org_user),
+    user: User = Depends(current_org_user),
 ):
     scholarship = await session.get(Scholarship, scholarship_id)
     if not scholarship:
