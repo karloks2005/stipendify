@@ -57,14 +57,22 @@ class ScholarshipBase(BaseModel):
 class ScholarshipCreate(ScholarshipBase):
     pass
 
-class ScholarshipUpdate(ScholarshipBase):
-    name: Optional[str] = None
-    value: Optional[int] = None
+class ScholarshipUpdate(BaseModel):
     url: Optional[str] = None
     is_allowed: Optional[bool] = None
     organisation_work: Optional[bool] = None
     min_grade_average: Optional[float] = None
-    is_monthly: Optional[bool] = False
+    field_of_study: Optional[str] = None
+    type_of_study: Optional[StudyType] = None
+    min_year_of_study: Optional[Literal[0, 1, 2, 3, 4, 5]] = None
+    length_of_scholarship: Optional[timedelta] = None
+    length_of_work: Optional[timedelta] = None
+    important_dates: Optional[dict] = None
+    description: Optional[str] = None
+    location: Optional[str] = None
+    is_monthly: Optional[bool] = None
+    name: Optional[str] = None
+    value: Optional[int] = None
 
 class ScholarshipRead(ScholarshipBase):
     id: uuid.UUID
