@@ -1,17 +1,20 @@
-Running tests:
+# Ispitivanje komponenti
+Pokretanje aplikacije
 
 ```sh
 # u root direktoriju projekta
 
-# postavi flask auth key (google auth i email nisu potrebni za test)
+# postavi flask auth key (google auth i email api nisu potrebni za test)
 echo "AUTH_KEY=$(openssl rand -hex 32)" > backend/.env
 
 docker compose up -d --build --force-recreate 
-
+```
+Pokreni testove:
+```py
 # uv je nice, preporucam (https://docs.astral.sh/uv)
 uv run pytest backend/tests/main.py
 
-# ...ili manualno:
+# ...ili rucno:
 pip install httpx pytest
 pytest backend/tests/main.py
 ```
