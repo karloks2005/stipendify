@@ -16,6 +16,9 @@ function HomePage() {
   const [error, setError] = useState(null)
   const { accessToken, initializing, logout, user } = useAuth()
   const navigate = useNavigate()
+  const [showFilter, setShowFilter] = useState(false)
+  const [originalScholarships, setOriginalScholarships] = useState([])
+  const [activeFilter, setActiveFilter] = useState(null)
   
   const [selectedScholarshipId, setSelectedScholarshipId] = useState(null)
   const [dashboardDate, setDashboardDate] = useState(new Date())
@@ -63,7 +66,9 @@ function HomePage() {
       })
       if (!response.ok) throw new Error('Neuspješno dohvaćanje stipendija')
       const data = await response.json()
-      setScholarships(data.reverse()) // Prikaži najnovije prve
+      const reversed = data.reverse()
+      setScholarships(reversed) // Prikaži najnovije prve
+      setOriginalScholarships(reversed)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -131,6 +136,49 @@ function HomePage() {
 
   const isOrganization = Boolean(user && user.organisation_id != null)
 
+  // Simple scoring function to rank scholarships by how well they match student's data
+  const scoreScholarship = (s, criteria) => {
+    if (!criteria) return 0
+    let score = 0
+    const prosjek = parseFloat(criteria.prosjek) || 0
+    const godina = parseInt(criteria.godinaStudija) || 0
+
+    if (criteria.podrucjeStudiranja && s.field_of_study && s.field_of_study.toLowerCase().includes(criteria.podrucjeStudiranja.toLowerCase())) score += 30
+    if (criteria.grad && s.location && s.location.toLowerCase().includes(criteria.grad.toLowerCase())) score += 25
+    if (s.min_year_of_study && parseInt(s.min_year_of_study) <= godina) score += 15
+    if (s.min_grade_average && parseFloat(s.min_grade_average) <= prosjek) score += 20
+
+    // Socioekonomski status and other flags could influence score if scholarship contains matching tags
+    return score
+  }
+
+  const applyFilter = (criteria) => {
+    if (!criteria) return
+    // score against original list to avoid compounding sorts
+    const scored = originalScholarships.map(s => ({ s, score: scoreScholarship(s, criteria) }))
+    scored.sort((a, b) => b.score - a.score)
+    const sorted = scored.map(x => x.s)
+    setScholarships(sorted)
+    setActiveFilter(criteria)
+    setShowFilter(false)
+  }
+
+  const resetFilter = () => {
+    setScholarships(originalScholarships)
+    setActiveFilter(null)
+  }
+
+  // Derive available cities from original scholarships (fallback to parsing `location`)
+  const getAvailableCities = () => {
+    const cities = (originalScholarships || []).map(s => {
+      if (!s) return ''
+      if (s.city) return s.city
+      if (s.location) return String(s.location).split(',')[0].trim()
+      return ''
+    }).filter(Boolean)
+    return Array.from(new Set(cities))
+  }
+
   const handleReminderClick = (scholarshipId, scholarshipData = null) => {
     if (scholarshipData) {
       // Ako je proslijeđena stipendija, otvorit ćemo edit formu
@@ -179,6 +227,14 @@ function HomePage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
+            {!isOrganization && (
+              <div className="flex items-center gap-2">
+                <button onClick={() => setShowFilter(true)} className="px-4 py-2.5 text-white font-bold bg-blue-400 rounded-xl shadow-md hover:bg-blue-500 transition-all active:scale-95">Filtriraj</button>
+                {activeFilter && (
+                  <button onClick={resetFilter} className="px-3 py-2.5 text-gray-700 font-medium bg-gray-100 rounded-xl shadow-sm hover:bg-gray-200 transition-all">Očisti filter</button>
+                )}
+              </div>
+            )}
             {isOrganization && (
               <button onClick={() => setShowPostForm(true)} className="px-5 py-2.5 text-white font-bold bg-blue-400 rounded-xl shadow-md hover:bg-blue-500 transition-all active:scale-95">Kreiraj stipendiju</button>
             )}
@@ -272,6 +328,16 @@ function HomePage() {
       </main>
 
       <AnimatePresence>
+        {showFilter && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          >
+            <motion.div initial={{ scale: 0.95, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.95, y: 20, opacity: 0 }} className="w-full max-w-4xl">
+              <ScholarshipFilterForm onClose={() => setShowFilter(false)} onApply={applyFilter} onCalculateClick={() => {}} availableCities={getAvailableCities()} />
+            </motion.div>
+          </motion.div>
+        )}
         {selectedScholarshipId && (
           <motion.div 
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}

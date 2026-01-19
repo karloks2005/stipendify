@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 
-const ScholarshipFilterForm = ({ onClose, onCalculateClick }) => {
+const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCities = [] }) => {
   const [formData, setFormData] = useState({
     socioEkonStatus: '',
     prosjek: '4.20',
     godinaStudija: '4',
     vrstaStudija: 'Preddiplomski',
     podrucjeStudiranja: '',
-    zupanija: '',
     grad: '',
     zdravstveniStatus: [],
     nacionalnaManjina: 'Da',
@@ -134,24 +133,17 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick }) => {
             onChange={handleInputChange}
           >
             <option value="">Odaberite područje</option>
-            <option value="stem">STEM</option>
-            <option value="it">IT</option>
+                <option>Tehničke znanosti</option>
+                <option>Društvene znanosti</option>
+                <option>Humanističke znanosti</option>
           </select>
         </section>
 
-        {/* Lokacija */}
+        {/* Lokacija (gradovi iz formulara za objavu stipendije) */}
         <section>
           <h3 className="text-base font-bold mb-1">Lokacija</h3>
           <hr className="border-[#D4E3F9] mb-4" />
           <div className="flex gap-4">
-            <select 
-              name="zupanija"
-              className="flex-1 border border-gray-300 rounded px-3 py-1.5 outline-none bg-white text-sm text-gray-500"
-              value={formData.zupanija}
-              onChange={handleInputChange}
-            >
-              <option value="">Odaberite županiju</option>
-            </select>
             <select 
               name="grad"
               className="flex-1 border border-gray-300 rounded px-3 py-1.5 outline-none bg-white text-sm text-gray-500"
@@ -159,6 +151,15 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick }) => {
               onChange={handleInputChange}
             >
               <option value="">Odaberite grad</option>
+              {Array.isArray(availableCities) && availableCities.length > 0 ? (
+                availableCities.map((c) => <option key={c} value={c}>{c}</option>)
+              ) : (
+                [
+                  'Zagreb','Split','Rijeka','Osijek','Zadar','Slavonski Brod','Pula','Karlovac',
+                  'Varaždin','Šibenik','Sisak','Velika Gorica','Vinkovci','Vukovar','Dubrovnik',
+                  'Bjelovar','Koprivnica','Požega','Čakovec','Trogir'
+                ].map(c => <option key={c} value={c}>{c}</option>)
+              )}
             </select>
           </div>
         </section>
@@ -215,13 +216,23 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick }) => {
         </section>
 
         {/* Footer Button */}
-        <div className="pt-6 flex justify-end">
-          <button 
-            onClick={() => console.log('Pretraga...', formData)}
-            className="bg-[#2D3339] text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-black transition-all active:scale-95"
-          >
-            Pretraži stipendije!
-          </button>
+        <div className="pt-6 flex justify-between items-center">
+          <div>
+            <button
+              onClick={() => onClose && onClose()}
+              className="text-sm text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-all"
+            >
+              Zatvori
+            </button>
+          </div>
+          <div>
+            <button 
+              onClick={() => { if (onApply) onApply(formData); }}
+              className="bg-[#2D3339] text-white px-6 py-2 rounded-lg font-bold text-sm shadow-md hover:bg-black transition-all active:scale-95"
+            >
+              Pretraži stipendije!
+            </button>
+          </div>
         </div>
       </div>
     </div>
