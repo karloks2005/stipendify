@@ -1,2 +1,9 @@
 db_data/*
 backend/.env
+# Python cache
+__pycache__/
+*.pyc
+
+# Local virtual envs
+.venv/
+frontend/app/.venv/
