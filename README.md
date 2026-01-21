@@ -10,10 +10,10 @@ Stipendify je web platforma za pretragu državnih I privatnih stipendija. Pronal
 
 # Tehnologije
 ## Frontend
-### React
+### React ![React](https://img.shields.io/badge/react-js-blue)
 Razvojni okriv za izradu web aplikacija. Korišten za izradu korisničkog sučelja web aplikacije.
 
-### TailwindCSS
+### TailwindCSS ![TailwindCSS](https://img.shields.io/badge/tailwind-css-darkblue)
 CSS paket koji omogućuje jednostavno stiliziranje web stranica dodavanjem klasa iz paketa.
 
 ## Backend
