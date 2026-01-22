@@ -1,6 +1,7 @@
 import Button from './Button'
 import InputField from './InputField'
 import { useNavigate } from 'react-router-dom'
+import logo from '../logo.svg'
 
 export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToLogin, onGoogle }) {
   const navigate = useNavigate()
@@ -48,11 +49,8 @@ export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToL
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-8 sm:px-6 sm:py-10">
-      {/* CARD WRAPPER */}
       <div className="w-full max-w-5xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col lg:flex-row">
-        {/* LEFT BLUE PANEL */}
         <div className="w-full lg:w-1/3 bg-blue-400 text-white p-6 sm:p-10">
-          {/* Mobile logo */}
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl sm:text-4xl font-bold tracking-wide mb-4 sm:mb-6">
@@ -65,7 +63,7 @@ export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToL
             </div>
 
             <img
-              src="/progiLogo.svg"
+              src={logo}
               alt="Progi logo"
               className="lg:hidden w-20 h-20 sm:w-16 sm:h-16 shrink-0 object-contain"
             />
@@ -78,17 +76,14 @@ export default function RegistrationForm({ data, onChange, onSubmit, onSwitchToL
           </p>
         </div>
 
-        {/* desni */}
         <div className="w-full flex-1 flex">
-          {/* vertical centering on desktop */}
           <div className="w-full max-w-lg mx-auto lg:my-auto p-6 sm:p-10">
             <div className="mb-6">
-              {/* Desktop logo: desno od "Registriraj se" */}
               <div className="flex items-center justify-between gap-4">
                 <h2 className="text-2xl sm:text-3xl font-bold">Registriraj se</h2>
 
                 <img
-                  src="/progiLogo.svg"
+                  src={logo}
                   alt="Progi logo"
                   className="hidden lg:block w-16 h-16 object-contain"
                 />

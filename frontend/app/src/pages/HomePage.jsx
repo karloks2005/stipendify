@@ -25,38 +25,32 @@ function HomePage() {
   const [showPostForm, setShowPostForm] = useState(false)
   const [editingScholarship, setEditingScholarship] = useState(null)
 
-  // Placeholder reminders
   const [reminders, setReminders] = useState([])
 
   const fetchReminders = async () => {
-  try {
-    const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/email-reminders`, {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${accessToken}` },
-    })
-    if (!response.ok) throw new Error('Neuspješno dohvaćanje podsjetnika')
-    const remindersData = await response.json()
-
-    // Mapiramo podsjetnike i za svaki dohvaćamo stipendiju
-    const enrichedReminders = await Promise.all(
-      remindersData.map(async (rem) => {
-        const scholarship = await fetchScholarshipById(rem.scholarship_id)
-        return {
-          ...rem,
-          scholarshipName : scholarship.name
-          // Napomena: provjeri zove li se polje na tvom backendu 'title', 'naziv' ili sl.
-        }
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/email-reminders`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${accessToken}` },
       })
-    )
+      if (!response.ok) throw new Error('Neuspješno dohvaćanje podsjetnika')
+      const remindersData = await response.json()
 
-    setReminders(enrichedReminders)
-  } catch (err) {
-    console.error("Greška kod podsjetnika:", err)
-    // Ovdje ne želimo nužno setError(err.message) jer ne želimo blokirati cijelu stranicu
-    // ako samo podsjetnici zakažu.
+      const enrichedReminders = await Promise.all(
+        remindersData.map(async (rem) => {
+          const scholarship = await fetchScholarshipById(rem.scholarship_id)
+          return {
+            ...rem,
+            scholarshipName : scholarship.name
+          }
+        })
+      )
+
+      setReminders(enrichedReminders)
+    } catch (err) {
+      console.error("Greška kod podsjetnika:", err)
+    }
   }
-}
-
 
   const fetchScholarships = async () => {
     try {
@@ -67,7 +61,7 @@ function HomePage() {
       if (!response.ok) throw new Error('Neuspješno dohvaćanje stipendija')
       const data = await response.json()
       const reversed = data.reverse()
-      setScholarships(reversed) // Prikaži najnovije prve
+      setScholarships(reversed)
       setOriginalScholarships(reversed)
     } catch (err) {
       setError(err.message)
@@ -84,7 +78,7 @@ function HomePage() {
       })
       if (!response.ok) throw new Error('Neuspješno dohvaćanje organizacijskih stipendija')
       const data = await response.json()
-      setOrgScholarships(data.reverse()) // Prikaži najnovije prve
+      setOrgScholarships(data.reverse())
     } catch (err) {
       setError(err.message)
     } finally {
@@ -112,12 +106,11 @@ function HomePage() {
     if (initializing) return;
     if (!accessToken) {
       setLoading(false);
-      setError('Korisnik nije prijavljen. Preusmjeravanje...');
+      setError('Korisnik nije prijavljen. Preusmjevanje...');
       setTimeout(() => { navigate('/') }, 2000);
       return;
     }
     
-    // Redirect admin to dashboard
     if (user && user.is_superuser === true) {
       navigate('/dashboard', { replace: true });
       return;
@@ -126,7 +119,6 @@ function HomePage() {
     fetchScholarships()
     fetchReminders()
     
-    // Dohvati organizacijske stipendije samo ako je korisnik organizacija
     if (user && user.organisation_id != null) {
       fetchOrgScholarships()
     }
@@ -136,29 +128,253 @@ function HomePage() {
 
   const isOrganization = Boolean(user && user.organisation_id != null)
 
-  // Simple scoring function to rank scholarships by how well they match student's data
-  const scoreScholarship = (s, criteria) => {
-    if (!criteria) return 0
-    let score = 0
-    const prosjek = parseFloat(criteria.prosjek) || 0
-    const godina = parseInt(criteria.godinaStudija) || 0
+  const stripDiacritics = (v) => String(v ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const norm = (v) => stripDiacritics(v).toLowerCase().trim()
 
-    if (criteria.podrucjeStudiranja && s.field_of_study && s.field_of_study.toLowerCase().includes(criteria.podrucjeStudiranja.toLowerCase())) score += 30
-    if (criteria.grad && s.location && s.location.toLowerCase().includes(criteria.grad.toLowerCase())) score += 25
-    if (s.min_year_of_study && parseInt(s.min_year_of_study) <= godina) score += 15
-    if (s.min_grade_average && parseFloat(s.min_grade_average) <= prosjek) score += 20
+  const escapeRegExp = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
-    // Socioekonomski status and other flags could influence score if scholarship contains matching tags
-    return score
+  const scholarshipText = (s) => {
+    const parts = [
+      s?.name,
+      s?.title,
+      s?.description,
+      s?.field_of_study,
+      s?.type_of_study,
+      s?.organisation?.address,
+      s?.organisation_address,
+      s?.url
+    ].filter(Boolean)
+    return norm(parts.join(' '))
+  }
+
+  const normalizeSesValue = (v) => {
+    const s = norm(v)
+    if (s.startsWith('niz') || s.startsWith('nis')) return 'nizak'
+    if (s.startsWith('sre')) return 'srednji'
+    if (s.startsWith('vis')) return 'visok'
+    return s
+  }
+
+  const normalizeSportsValue = (v) => {
+    const s = norm(v)
+    if (s.includes('vrhun')) return 'vrhunski'
+    if (s.includes('kateg')) return 'kategorizirani'
+    if (s.includes('amat')) return 'amaterski'
+    if (s.includes('nista') || s.includes('ništa')) return 'nista'
+    return s
+  }
+
+  const matchesTypeOfStudy = (schType, selectedType) => {
+    const st = norm(schType)
+    const want = norm(selectedType)
+    if (!want) return true
+    if (!st) return true
+    if (want.includes('preddiplomski')) return st.includes('preddiplomski') || st.includes('prijediplomski') || st.includes('prijediplom')
+    if (want.includes('diplomski')) return st.includes('diplomski')
+    if (want.includes('integrirani')) return st.includes('integrirani')
+    if (want.includes('poslijediplomski')) return st.includes('poslijediplomski')
+    return st.includes(want)
+  }
+
+  const baseCities = [
+    'zagreb','split','rijeka','osijek','zadar','slavonski brod','pula','karlovac',
+    'varazdin','sibenik','sisak','velika gorica','vinkovci','vukovar','dubrovnik',
+    'bjelovar','koprivnica','pozega','cakovec','trogir'
+  ]
+
+  const cityList = () => {
+    const fromData = (originalScholarships || []).flatMap(s => {
+      const t = scholarshipText(s)
+      return baseCities.filter(c => new RegExp(`\\b${escapeRegExp(c)}\\w*\\b`, 'i').test(t))
+    })
+    return Array.from(new Set([...baseCities, ...fromData])).filter(Boolean)
+  }
+
+  const cityRegex = (city) => new RegExp(`\\b${escapeRegExp(norm(city))}\\w*\\b`, 'i')
+
+  const cityStatus = (text, selectedCity, cities) => {
+    const sel = norm(selectedCity)
+    if (!sel) return 'none'
+
+    const selRe = cityRegex(sel)
+    const matchesSelected = selRe.test(text) || new RegExp(`\\bgrad\\s+${escapeRegExp(sel)}\\w*\\b`, 'i').test(text) || text.includes(`${sel}.hr`)
+    if (matchesSelected) return 'selected'
+
+    const other = (cities || []).some(c => {
+      const cc = norm(c)
+      if (!cc || cc === sel) return false
+      return cityRegex(cc).test(text) || text.includes(`${cc}.hr`)
+    })
+    if (other) return 'other'
+
+    return 'unbound'
+  }
+
+  const detectSesInText = (t) => {
+    const x = t || ''
+    if (x.includes('nizak') || x.includes('niska')) return 'nizak'
+    if (x.includes('srednji') || x.includes('srednja')) return 'srednji'
+    if (x.includes('visok') || x.includes('visoka')) return 'visok'
+    return null
+  }
+
+  const detectSportsInText = (t) => {
+    const x = t || ''
+    if (x.includes('vrhunski')) return 'vrhunski'
+    if (x.includes('kategoriz')) return 'kategorizirani'
+    if (x.includes('amatersk') || x.includes('amater')) return 'amaterski'
+    return null
+  }
+
+  const hasMinorityInText = (t) => (t || '').includes('manjin')
+
+  const hasDisabilityInText = (t) => {
+    const x = t || ''
+    return x.includes('invaliditet') || x.includes('posebne potrebe')
+  }
+
+  const passesFilters = (s, criteria, cities) => {
+    const t = scholarshipText(s)
+
+    const prosjek = criteria?.prosjek !== '' && criteria?.prosjek != null ? parseFloat(criteria.prosjek) : NaN
+    if (!Number.isNaN(prosjek) && s?.min_grade_average != null) {
+      const minG = parseFloat(s.min_grade_average)
+      if (!Number.isNaN(minG) && prosjek < minG) return false
+    }
+
+    const godina = criteria?.godinaStudija !== '' && criteria?.godinaStudija != null ? parseInt(criteria.godinaStudija, 10) : NaN
+    if (!Number.isNaN(godina) && s?.min_year_of_study != null) {
+      const minY = parseInt(s.min_year_of_study, 10)
+      if (!Number.isNaN(minY) && godina < minY) return false
+    }
+
+    if (criteria?.podrucjeStudiranja) {
+      const want = norm(criteria.podrucjeStudiranja)
+      if (s?.field_of_study) {
+        if (!norm(s.field_of_study).includes(want)) return false
+      }
+    }
+
+    if (criteria?.vrstaStudija) {
+      if (s?.type_of_study) {
+        if (!matchesTypeOfStudy(s.type_of_study, criteria.vrstaStudija)) return false
+      }
+    }
+
+    if (criteria?.socioEkonStatus) {
+      const wanted = normalizeSesValue(criteria.socioEkonStatus)
+      const ses = detectSesInText(t)
+      if (ses && ses !== wanted) return false
+    }
+
+    if (criteria?.kategorijaSportasa) {
+      const wanted = normalizeSportsValue(criteria.kategorijaSportasa)
+      const sp = detectSportsInText(t)
+      if (wanted === 'nista') {
+        if (sp) return false
+      } else {
+        if (sp && sp !== wanted) return false
+      }
+    }
+
+    if (criteria?.nacionalnaManjina) {
+      const wanted = norm(criteria.nacionalnaManjina)
+      const has = hasMinorityInText(t)
+      if (wanted === 'da' && !has) return false
+      if (wanted === 'ne' && has) return false
+    }
+
+    if (Array.isArray(criteria?.zdravstveniStatus)) {
+      const wantsDis = criteria.zdravstveniStatus.includes('student') || criteria.zdravstveniStatus.includes('clan')
+      const hasDis = hasDisabilityInText(t)
+      if (wantsDis && !hasDis) return false
+      if (!wantsDis && criteria.zdravstveniStatus.length === 0 && hasDis) return false
+    }
+
+    if (criteria?.grad) {
+      const st = cityStatus(t, criteria.grad, cities)
+      if (st === 'other') return false
+    }
+
+    return true
+  }
+
+  const matchCount = (s, criteria, cities) => {
+    const t = scholarshipText(s)
+    let cnt = 0
+
+    if (criteria?.grad) {
+      if (cityStatus(t, criteria.grad, cities) === 'selected') cnt += 1
+    }
+
+    if (criteria?.podrucjeStudiranja) {
+      const want = norm(criteria.podrucjeStudiranja)
+      if (s?.field_of_study && norm(s.field_of_study).includes(want)) cnt += 1
+    }
+
+    if (criteria?.vrstaStudija) {
+      if (s?.type_of_study && matchesTypeOfStudy(s.type_of_study, criteria.vrstaStudija)) cnt += 1
+    }
+
+    if (criteria?.socioEkonStatus) {
+      const wanted = normalizeSesValue(criteria.socioEkonStatus)
+      const ses = detectSesInText(t)
+      if (ses && ses === wanted) cnt += 1
+    }
+
+    if (criteria?.kategorijaSportasa) {
+      const wanted = normalizeSportsValue(criteria.kategorijaSportasa)
+      const sp = detectSportsInText(t)
+      if (wanted === 'nista') {
+        if (!sp) cnt += 1
+      } else if (sp && sp === wanted) {
+        cnt += 1
+      }
+    }
+
+    if (criteria?.nacionalnaManjina) {
+      const wanted = norm(criteria.nacionalnaManjina)
+      const has = hasMinorityInText(t)
+      if (wanted === 'da' && has) cnt += 1
+      if (wanted === 'ne' && !has) cnt += 1
+    }
+
+    const prosjek = criteria?.prosjek !== '' && criteria?.prosjek != null ? parseFloat(criteria.prosjek) : NaN
+    if (!Number.isNaN(prosjek)) {
+      const minG = s?.min_grade_average != null ? parseFloat(s.min_grade_average) : NaN
+      if (Number.isNaN(minG) || prosjek >= minG) cnt += 1
+    }
+
+    const godina = criteria?.godinaStudija !== '' && criteria?.godinaStudija != null ? parseInt(criteria.godinaStudija, 10) : NaN
+    if (!Number.isNaN(godina)) {
+      const minY = s?.min_year_of_study != null ? parseInt(s.min_year_of_study, 10) : NaN
+      if (Number.isNaN(minY) || godina >= minY) cnt += 1
+    }
+
+    return cnt
   }
 
   const applyFilter = (criteria) => {
     if (!criteria) return
-    // score against original list to avoid compounding sorts
-    const scored = originalScholarships.map(s => ({ s, score: scoreScholarship(s, criteria) }))
-    scored.sort((a, b) => b.score - a.score)
-    const sorted = scored.map(x => x.s)
-    setScholarships(sorted)
+
+    const cities = cityList()
+    const filtered = originalScholarships.filter(s => passesFilters(s, criteria, cities))
+
+    const ranked = filtered.map((s, idx) => {
+      const t = scholarshipText(s)
+      const st = criteria?.grad ? cityStatus(t, criteria.grad, cities) : 'none'
+      const cityRank = st === 'selected' ? 2 : (st === 'unbound' ? 1 : 0)
+      const cnt = matchCount(s, criteria, cities)
+      return { s, idx, cityRank, cnt }
+    })
+
+    ranked.sort((a, b) => {
+      if (b.cityRank !== a.cityRank) return b.cityRank - a.cityRank
+      if (b.cnt !== a.cnt) return b.cnt - a.cnt
+      return a.idx - b.idx
+    })
+
+    setScholarships(ranked.map(x => x.s))
     setActiveFilter(criteria)
     setShowFilter(false)
   }
@@ -168,29 +384,20 @@ function HomePage() {
     setActiveFilter(null)
   }
 
-  // Derive available cities from original scholarships (fallback to parsing `location`)
   const getAvailableCities = () => {
-    const cities = (originalScholarships || []).map(s => {
-      if (!s) return ''
-      if (s.city) return s.city
-      if (s.location) return String(s.location).split(',')[0].trim()
-      return ''
-    }).filter(Boolean)
+    const cities = cityList().map(c => c.charAt(0).toUpperCase() + c.slice(1))
     return Array.from(new Set(cities))
   }
 
   const handleReminderClick = (scholarshipId, scholarshipData = null) => {
     if (scholarshipData) {
-      // Ako je proslijeđena stipendija, otvorit ćemo edit formu
       setEditingScholarship(scholarshipData)
     } else {
-      // Inače otvoramo reminder formu
       setSelectedScholarshipId(scholarshipId)
     }
   }
   const handleReminderClose = () => setSelectedScholarshipId(null)
 
-  // Lokalno uklanjanje podsjetnika iz state-a bez mrežnog poziva
   const handleDeleteReminder = (reminderId) => {
     console.log('Brisanje podsjetnika s ID-jem:', reminderId)
     const payload = {
@@ -204,7 +411,6 @@ function HomePage() {
     })
     .then((resp) => {
       if (!resp.ok) throw new Error('Neuspješno brisanje podsjetnika')
-      // Ukloni iz lokalnog state-a
       setReminders((prev) => prev.filter((r) => r.id !== reminderId))
     })
     .catch((err) => {
@@ -248,7 +454,6 @@ function HomePage() {
       <main className="flex-1 lg:overflow-hidden max-w-7xl mx-auto w-full px-6 lg:px-8 py-4 lg:py-8">
         <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8 lg:gap-10 h-full">
           
-          {/* SIDEBAR: Kalendar prvi na mobitelu (order-1) */}
           <aside className="order-1 lg:order-2 flex flex-col gap-6 lg:h-full lg:overflow-hidden lg:col-span-1">
             <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 shrink-0">
               <Calendar selectedDate={dashboardDate} onDateSelect={setDashboardDate} reminders={reminders} />
@@ -291,7 +496,6 @@ function HomePage() {
             </div>
           </aside>
 
-          {/* MAIN CONTENT: Stipendije zadnje na mobitelu (order-2) */}
           <section className="order-2 lg:order-1 lg:col-span-2 lg:overflow-y-auto pr-2 custom-scrollbar space-y-6 pb-20">
             {isOrganization ? (
               <>

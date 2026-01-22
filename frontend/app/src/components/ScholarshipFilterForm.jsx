@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
+import logo from '../logo.svg';
 
 const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCities = [] }) => {
   const [formData, setFormData] = useState({
     socioEkonStatus: '',
-    prosjek: '4.20',
-    godinaStudija: '4',
-    vrstaStudija: 'Preddiplomski',
+    prosjek: '',
+    godinaStudija: '',
+    vrstaStudija: '',
     podrucjeStudiranja: '',
     grad: '',
     zdravstveniStatus: [],
-    nacionalnaManjina: 'Da',
-    kategorijaSportasa: 'Vrhunski'
+    nacionalnaManjina: '',
+    kategorijaSportasa: ''
   });
 
   const handleInputChange = (e) => {
@@ -32,18 +33,17 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCi
 
   return (
     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden font-sans text-gray-800">
-      {/* Header */}
       <div className="px-8 py-6 flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Stipendijski Obrazac</h2>
-        <div className="w-12 h-12 bg-[#5D92EB] rounded-full flex items-center justify-center text-white text-[10px] font-bold">
-          Logo
-        </div>
+        <img
+          src={logo}
+          alt="Logo"
+          className="w-12 h-12 rounded-full object-cover border border-gray-200"
+        />
       </div>
 
-      {/* Form Content */}
       <div className="px-8 pb-8 space-y-6 overflow-y-auto max-h-[80vh] text-left custom-scrollbar">
         
-        {/* Socioekonomski status */}
         <section>
           <h3 className="text-base font-bold mb-1">Socioekonomski status</h3>
           <hr className="border-[#D4E3F9] mb-4" />
@@ -72,7 +72,6 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCi
           </div>
         </section>
 
-        {/* Prosjek ocjena */}
         <section>
           <h3 className="text-base font-bold mb-1">Prosjek ocjena</h3>
           <hr className="border-[#D4E3F9] mb-4" />
@@ -82,12 +81,12 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCi
               name="prosjek"
               value={formData.prosjek}
               onChange={handleInputChange}
-              className="w-16 border border-gray-300 rounded px-2 py-1 outline-none text-sm text-center"
+              className="w-24 border border-gray-300 rounded px-2 py-1 outline-none text-sm text-center"
+              placeholder="npr 4.20"
             />
           </div>
         </section>
 
-        {/* Godina studiranja */}
         <section>
           <h3 className="text-base font-bold mb-1">Godina studiranja</h3>
           <hr className="border-[#D4E3F9] mb-4" />
@@ -95,16 +94,16 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCi
             <label className="text-sm text-gray-600">Unesite broj:</label>
             <select 
               name="godinaStudija"
-              className="w-16 border border-gray-300 rounded px-2 py-1 outline-none bg-white text-sm"
+              className="w-24 border border-gray-300 rounded px-2 py-1 outline-none bg-white text-sm"
               value={formData.godinaStudija}
               onChange={handleInputChange}
             >
+              <option value="">*odaberi</option>
               {[1,2,3,4,5].map(g => <option key={g} value={g}>{g}</option>)}
             </select>
           </div>
         </section>
 
-        {/* Vrsta studija */}
         <section>
           <h3 className="text-base font-bold mb-1">Vrsta studija</h3>
           <hr className="border-[#D4E3F9] mb-4" />
@@ -122,7 +121,6 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCi
           </div>
         </section>
 
-        {/* Područje studiranja */}
         <section>
           <h3 className="text-base font-bold mb-1">Područje studiranja</h3>
           <hr className="border-[#D4E3F9] mb-4" />
@@ -133,13 +131,12 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCi
             onChange={handleInputChange}
           >
             <option value="">Odaberite područje</option>
-                <option>Tehničke znanosti</option>
-                <option>Društvene znanosti</option>
-                <option>Humanističke znanosti</option>
+            <option>Tehničke znanosti</option>
+            <option>Društvene znanosti</option>
+            <option>Humanističke znanosti</option>
           </select>
         </section>
 
-        {/* Lokacija (gradovi iz formulara za objavu stipendije) */}
         <section>
           <h3 className="text-base font-bold mb-1">Lokacija</h3>
           <hr className="border-[#D4E3F9] mb-4" />
@@ -164,7 +161,6 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCi
           </div>
         </section>
 
-        {/* Zdravstveni status */}
         <section>
           <h3 className="text-base font-bold mb-1">Zdravstveni status</h3>
           <hr className="border-[#D4E3F9] mb-4" />
@@ -187,7 +183,6 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCi
           </div>
         </section>
 
-        {/* Nacionalna manjina */}
         <section>
           <h3 className="text-base font-bold mb-1">Pripadnost nacionalnoj manjini</h3>
           <hr className="border-[#D4E3F9] mb-4" />
@@ -197,7 +192,6 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCi
           </div>
         </section>
 
-        {/* Kategorija sportaša */}
         <section>
           <h3 className="text-base font-bold mb-1">Kategorija sportaša</h3>
           <hr className="border-[#D4E3F9] mb-4" />
@@ -215,7 +209,6 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCi
           </div>
         </section>
 
-        {/* Footer Button */}
         <div className="pt-6 flex justify-between items-center">
           <div>
             <button
@@ -239,7 +232,6 @@ const ScholarshipFilterForm = ({ onClose, onCalculateClick, onApply, availableCi
   );
 };
 
-// Pomoćne komponente
 const Radio = ({ label, name, value, checked, onChange }) => (
   <label className="flex items-center gap-2 text-sm cursor-pointer group">
     <div className={`w-4 h-4 rounded-full border flex items-center justify-center transition-all ${checked ? 'border-[#5D92EB]' : 'border-gray-300'}`}>
